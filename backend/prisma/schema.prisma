@@ -11,3 +11,76 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model HotelBrand {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branches Branch[]
+}
+
+model Branch {
+  id          String   @id @default(uuid()) @db.Uuid
+  brandId     String   @db.Uuid
+  name        String
+  description String?
+  address     String
+  city        String
+  province    String
+  country     String   @default("South Africa")
+  latitude    Decimal? @db.Decimal(10, 7)
+  longitude   Decimal? @db.Decimal(10, 7)
+  phone       String?
+  email       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  brand     HotelBrand @relation(fields: [brandId], references: [id])
+  roomTypes RoomType[]
+  rooms     Room[]
+
+  @@unique([brandId, name])
+  @@index([city])
+}
+
+model RoomType {
+  id          String   @id @default(uuid()) @db.Uuid
+  branchId    String   @db.Uuid
+  name        String
+  description String?
+  maxGuests   Int
+  basePrice   Decimal  @db.Decimal(12, 2)
+  currency    String   @default("ZAR")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branch Branch @relation(fields: [branchId], references: [id])
+  rooms  Room[]
+
+  @@unique([branchId, name])
+  @@unique([id, branchId])
+  @@index([branchId])
+}
+
+model Room {
+  id         String   @id @default(uuid()) @db.Uuid
+  branchId   String   @db.Uuid
+  roomTypeId String   @db.Uuid
+  roomNumber String
+  floor      Int?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  branch   Branch   @relation(fields: [branchId], references: [id])
+  roomType RoomType @relation(fields: [roomTypeId, branchId], references: [id, branchId])
+
+  @@unique([branchId, roomNumber])
+  @@index([roomTypeId])
+}
