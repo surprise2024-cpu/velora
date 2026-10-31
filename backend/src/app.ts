@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import branchRoutes from "./routes/branchRoutes.js";
 
 export const app = express();
 
@@ -30,6 +31,8 @@ app.use(
         legacyHeaders: false,
     })
 );
+
+app.use("/api/v1/branches", branchRoutes);
 
 // health check endpoint
 app.get("/api/v1/health", (_req, res) => {
