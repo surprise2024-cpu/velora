@@ -1,5 +1,12 @@
+import "dotenv/config";
+import { app } from "./app.js";
 
+const port = Number(process.env.PORT ?? 5000);
 
-const appName: string = "Velora Hotels API";
+if(!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error("PORT must be a valid TCP port number");
+}
 
-console.log(`${appName} - TypeScript configured successfully`);
+app.listen(port, () => {
+    console.log(`Velora API running at http:localhost:${port}`);
+})
