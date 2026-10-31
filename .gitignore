@@ -19,3 +19,9 @@ coverage/
 # Operating system
 .DS_Store
 Thumbs.db
+
+# Prisma-generated AI assistant documentation
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
