@@ -4,6 +4,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import branchRoutes from "./routes/branchRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
+import { sessionMiddleware } from "./config/session.js";
 
 export const app = express();
 
@@ -16,11 +17,14 @@ app.use(helmet());
 app.use(
     cors({
         origin: process.env.FRONTEND_URL ?? "http://localhost:5137",
+        credentials: true,
     })
 );
 
 // parse JSON request bodies
 app.use(express.json({ limit: "100kb" }));
+
+app.use(sessionMiddleware);
 
 // rate limit API requests
 app.use(
