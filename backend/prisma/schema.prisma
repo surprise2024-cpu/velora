@@ -81,6 +81,29 @@ model Room {
   branch   Branch   @relation(fields: [branchId], references: [id])
   roomType RoomType @relation(fields: [roomTypeId, branchId], references: [id, branchId])
 
+  bookings Booking[]
+
   @@unique([branchId, roomNumber])
   @@index([roomTypeId])
+}
+
+
+model Booking {
+  id         String        @id @default(uuid()) @db.Uuid
+  roomId     String        @db.Uuid
+  checkIn    DateTime      @db.Date
+  checkOut   DateTime      @db.Date
+  guestCount Int
+  status     BookingStatus @default(CONFIRMED)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@index([roomId, checkIn, checkOut])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
 }

@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import branchRoutes from "./routes/branchRoutes.js";
+import availabilityRoutes from "./routes/availabilityRoutes.js";
 
 export const app = express();
 
@@ -32,8 +33,6 @@ app.use(
     })
 );
 
-app.use("/api/v1/branches", branchRoutes);
-
 // health check endpoint
 app.get("/api/v1/health", (_req, res) => {
     res.status(200).json({
@@ -42,6 +41,11 @@ app.get("/api/v1/health", (_req, res) => {
         timestamp: new Date().toISOString(),
     });
 });
+
+app.use("/api/v1/branches", branchRoutes);
+app.use("/api/v1/branches", availabilityRoutes);
+
+
 
 // handles unknown routes
 app.use((_req, res) => {
