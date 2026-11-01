@@ -5,6 +5,7 @@ import rateLimit from "express-rate-limit";
 import branchRoutes from "./routes/branchRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import { sessionMiddleware } from "./config/session.js";
+import authRoutes from "./routes/authRoutes.js";
 
 export const app = express();
 
@@ -36,6 +37,8 @@ app.use(
         legacyHeaders: false,
     })
 );
+
+app.use("/api/v1/auth", authRoutes);
 
 // health check endpoint
 app.get("/api/v1/health", (_req, res) => {
