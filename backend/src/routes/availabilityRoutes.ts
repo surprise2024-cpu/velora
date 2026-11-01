@@ -57,11 +57,13 @@ router.get("/:id/availability", async (req, res) => {
         rooms: {
           where: {
             isActive: true,
-            bookings: {
+            bookingRooms: {
               none: {
-                status: "CONFIRMED",
-                checkIn: { lt: new Date(checkOut) },
-                checkOut: { gt: new Date(checkIn) },
+                booking: {
+                    status: "CONFIRMED",
+                    checkIn: { lt: new Date(checkOut) },
+                    checkOut: { gt: new Date(checkIn) },
+                },
               },
             },
           },
