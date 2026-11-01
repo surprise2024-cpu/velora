@@ -30,6 +30,7 @@ router.get("/", async (_req, res) => {
     }
 });
 
+// fetching a specific branch by ID
 router.get("/:id", async (req, res) => {
     const { id } = req.params;
 
@@ -75,6 +76,7 @@ router.get("/:id", async (req, res) => {
 
 });
 
+// fetching all room types for a specific branch
 router.get("/:id/room-types", async (req, res) =>{
     const parseId = z.uuid().safeParse(req.params.id);
 
@@ -139,5 +141,76 @@ router.get("/:id/room-types", async (req, res) =>{
     }
 
 });
+
+// fetching all rooms for a specific branch
+router.get("/:id/rooms", async (req, res) => {
+  const parsedId = z.uuid().safeParse(req.params.id);
+
+  if (!parsedId.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid branch ID format",
+    });
+  }
+
+  try {
+    const branch = await prisma.branch.findFirst({
+      where: {
+        id: parsedId.data,
+        isActive: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!branch) {
+      return res.status(404).json({
+        success: false,
+        message: "Hotel branch not found",
+      });
+    }
+
+    const rooms = await prisma.room.findMany({
+      where: {
+        branchId: parsedId.data,
+        isActive: true,
+        roomType: {
+          isActive: true,
+        },
+      },
+      select: {
+        id: true,
+        roomNumber: true,
+        floor: true,
+        roomType: {
+          select: {
+            id: true,
+            name: true,
+            maxGuests: true,
+            basePrice: true,
+            currency: true,
+          },
+        },
+      },
+      orderBy: {
+        roomNumber: "asc",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: rooms,
+    });
+  } catch (error) {
+    console.error("Failed to fetch rooms:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch rooms",
+    });
+  }
+});
+
 
 export default router;
