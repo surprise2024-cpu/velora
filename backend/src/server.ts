@@ -8,5 +8,5 @@ if(!Number.isInteger(port) || port < 1 || port > 65535) {
 }
 
 app.listen(port, () => {
-    console.log(`Velora API running at http:localhost:${port}`);
+    console.log(`Velora API running at http://localhost:${port}`);
 })
