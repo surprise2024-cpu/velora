@@ -24,12 +24,32 @@ router.get("/:id/availability", async (req, res) => {
 
   const { checkIn, checkOut, guests } = query.data;
 
-  if (checkIn >= checkOut) {
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (checkIn < today) {
     return res.status(400).json({
       success: false,
-      message: "Check-out must be after check-in",
+      message: "Check-in date cannot be in the past",
     });
   }
+
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const MAX_STAY_NIGHTS = 30;
+
+  const checkInDate = new Date(`${checkIn}T00:00:00Z`);
+  const checkOutDate = new Date(`${checkOut}T00:00:00Z`);
+
+  const stayNights =
+    (checkOutDate.getTime() - checkInDate.getTime()) /
+    MS_PER_DAY;
+
+  if (stayNights > MAX_STAY_NIGHTS) {
+    return res.status(400).json({
+      success: false,
+      message: "Stay cannot exceed 30 nights",
+    });
+  }
+
 
   try {
     const branch = await prisma.branch.findFirst({
