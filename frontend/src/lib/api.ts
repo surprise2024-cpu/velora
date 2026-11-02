@@ -55,47 +55,72 @@ export function clearCsrfToken(): void {
   csrfToken = null;
 }
 
+
 export async function apiRequest<T>(
   endpoint: string,
   options: ApiOptions = {}
 ): Promise<T> {
   const method = (options.method ?? "GET").toUpperCase();
-  const headers = new Headers(options.headers);
 
-  if (
-    !["GET", "HEAD", "OPTIONS"].includes(method)
-  ) {
-    headers.set("x-csrf-token", await getCsrfToken());
-  }
+  const requiresCsrf = !["GET", "HEAD", "OPTIONS"].includes(
+    method
+  );
 
-  if (
-    options.body != null &&
-    !headers.has("Content-Type") &&
-    typeof options.body === "string"
-  ) {
-    headers.set("Content-Type", "application/json");
-  }
+  async function sendRequest(): Promise<Response> {
+    const headers = new Headers(options.headers);
 
-  const response = await fetch(
-    `${API_BASE_URL}${endpoint}`,
-    {
+    if (requiresCsrf) {
+      headers.set("x-csrf-token", await getCsrfToken());
+    }
+
+    if (
+      options.body != null &&
+      !headers.has("Content-Type") &&
+      typeof options.body === "string"
+    ) {
+      headers.set("Content-Type", "application/json");
+    }
+
+    return fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       method,
       headers,
       credentials: "include",
+    });
+  }
+
+  let response = await sendRequest();
+
+  if (requiresCsrf && response.status === 403) {
+    let csrfRejected = false;
+
+    try {
+      const data: { message?: string } =
+        await response.clone().json();
+
+      csrfRejected =
+        data.message === "Invalid or missing CSRF token";
+    } catch {
+      // A non-JSON response is not treated as a CSRF rejection.
     }
-  );
+
+    if (csrfRejected) {
+      clearCsrfToken();
+      response = await sendRequest();
+    }
+  }
 
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
 
     try {
       const data = await response.json();
+
       if (typeof data.message === "string") {
         message = data.message;
       }
     } catch {
-      // Keep the default error message.
+      // Preserve the default error message.
     }
 
     throw new ApiError(response.status, message);
