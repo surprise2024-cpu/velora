@@ -68,7 +68,7 @@ export async function apiRequest<T>(
 
   async function sendRequest(): Promise<Response> {
     const headers = new Headers(options.headers);
-
+    
     if (requiresCsrf) {
       headers.set("x-csrf-token", await getCsrfToken());
     }
