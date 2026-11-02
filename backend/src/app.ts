@@ -8,9 +8,15 @@ import { sessionMiddleware } from "./config/session.js";
 import authRoutes from "./routes/authRoutes.js";
 import { csrfSynchronisedProtection } from "./config/csrf.js";
 import type { ErrorRequestHandler } from "express";
+import { errorHandler } from "./middleware/errorHandler.js";
 
 
 export const app = express();
+
+// Trust Render's reverse proxy in production
+if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
+}
 
 // disable express identification header
 app.disable("x-powered-by");
@@ -84,3 +90,6 @@ app.use((_req, res) => {
         message: "Route not found",
     });
 });
+
+// Handle unexpected API errors.
+app.use(errorHandler);
