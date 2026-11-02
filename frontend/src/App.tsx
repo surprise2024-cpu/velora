@@ -4,6 +4,8 @@ import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
 import { Routes, Route } from 'react-router-dom'
+import ProtectedRoute from './components/ProtectedRoutes'
+import LogoutButton from './components/LogoutButton'
 
 function HomePage() {
   const [count, setCount] = useState(0)
@@ -120,6 +122,10 @@ function HomePage() {
   )
 }
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ??
+  "http://localhost:5000/api/v1";
+
 function App() {
   return (
     <Routes>
@@ -131,18 +137,45 @@ function App() {
 
       <Route 
         path="/login"
-        element={<h1>Velora Login</h1>} 
+        element={
+          <main>
+            <h1>Welcome to Velora Hotels</h1>
+
+            <p>Sign in to manage your hotel bookings.</p>
+
+            <a href={`${API_BASE_URL}/auth/google`}>
+              Sign in with Google
+            </a>
+          </main>
+        
+        }
+           
       />
 
-      <Route 
-        path="/account"
-        element={<h1>Velora Customer Account</h1>} 
-      />
-
-      <Route 
-        path="/admin"
-        element={<h1>Velora Admin Dashboard</h1>} 
-      />
+      <Route element={<ProtectedRoute allowedRole="CUSTOMER" />}>
+        <Route 
+          path="/account"
+          element={
+            <main>
+              <h1>Velora Customer Account</h1>
+              <LogoutButton />
+            </main>
+            
+          } 
+        />
+      </Route>
+      
+      <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
+        <Route 
+          path="/admin"
+          element={
+            <main>
+              <h1>Velora Admin Dashboard</h1>
+              <LogoutButton />
+            </main>
+          } 
+        />
+      </Route>
 
       <Route 
         path="*"
