@@ -3,8 +3,9 @@ import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
+import { Routes, Route } from 'react-router-dom'
 
-function App() {
+function HomePage() {
   const [count, setCount] = useState(0)
 
   return (
@@ -117,6 +118,39 @@ function App() {
       <section id="spacer"></section>
     </>
   )
+}
+
+function App() {
+  return (
+    <Routes>
+
+      <Route 
+        path="/" 
+        element={<HomePage />} 
+      />
+
+      <Route 
+        path="/login"
+        element={<h1>Velora Login</h1>} 
+      />
+
+      <Route 
+        path="/account"
+        element={<h1>Velora Customer Account</h1>} 
+      />
+
+      <Route 
+        path="/admin"
+        element={<h1>Velora Admin Dashboard</h1>} 
+      />
+
+      <Route 
+        path="*"
+        element={<h1>404 - Page Not Found </h1>} 
+      />
+
+    </Routes>
+  );
 }
 
 export default App
