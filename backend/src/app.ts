@@ -6,6 +6,9 @@ import branchRoutes from "./routes/branchRoutes.js";
 import availabilityRoutes from "./routes/availabilityRoutes.js";
 import { sessionMiddleware } from "./config/session.js";
 import authRoutes from "./routes/authRoutes.js";
+import { csrfSynchronisedProtection } from "./config/csrf.js";
+import type { ErrorRequestHandler } from "express";
+
 
 export const app = express();
 
@@ -26,6 +29,9 @@ app.use(
 app.use(express.json({ limit: "100kb" }));
 
 app.use(sessionMiddleware);
+
+// validate CSRF token for all requests except GET, HEAD, OPTIONS
+app.use(csrfSynchronisedProtection);
 
 // rate limit API requests
 app.use(
@@ -52,7 +58,24 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/branches", branchRoutes);
 app.use("/api/v1/branches", availabilityRoutes);
 
+const csrfErrorHandler: ErrorRequestHandler = (
+  error,
+  _req,
+  res,
+  next
+) => {
+  if (error.code === "EBADCSRFTOKEN") {
+    res.status(403).json({
+      success: false,
+      message: "Invalid or missing CSRF token",
+    });
+    return;
+  }
 
+  next(error);
+};
+
+app.use(csrfErrorHandler);
 
 // handles unknown routes
 app.use((_req, res) => {
