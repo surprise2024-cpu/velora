@@ -40,6 +40,11 @@ model Branch {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  images     String[] @default([])
+  amenities  String[] @default([])
+  policies   String[] @default([])
+  starRating Int?
+
   brand     HotelBrand @relation(fields: [brandId], references: [id])
   roomTypes RoomType[]
   rooms     Room[]
@@ -59,6 +64,9 @@ model RoomType {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  images    String[] @default([])
+  amenities String[] @default([])
 
   branch Branch @relation(fields: [branchId], references: [id])
   rooms  Room[]
@@ -87,7 +95,6 @@ model Room {
   @@index([roomTypeId])
 }
 
-
 model Booking {
   id         String        @id @default(uuid()) @db.Uuid
   checkIn    DateTime      @db.Date
@@ -96,7 +103,7 @@ model Booking {
   status     BookingStatus @default(CONFIRMED)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
-  userId String? @db.Uuid
+  userId     String?       @db.Uuid
 
   user User? @relation(fields: [userId], references: [id])
 
@@ -107,7 +114,6 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
 }
-
 
 model User {
   id         String   @id @default(uuid()) @db.Uuid
@@ -128,7 +134,6 @@ enum UserRole {
   CUSTOMER
   ADMIN
 }
-
 
 model BookingRoom {
   id        String   @id @default(uuid()) @db.Uuid
