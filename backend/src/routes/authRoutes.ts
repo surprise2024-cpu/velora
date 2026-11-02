@@ -7,6 +7,7 @@ import {
 } from "../config/googleAuth.js";
 import { prisma } from "../lib/prisma.js";
 import { Prisma } from "../generated/prisma/client.js";
+import { generateToken } from "../config/csrf.js";
 
 const router = Router();
 
@@ -287,5 +288,24 @@ router.post("/logout", (req, res) => {
   });
 });
 
+router.get("/csrf-token", (req, res) => {
+  const csrfToken = generateToken(req);
+
+  req.session.save((error) => {
+    if (error) {
+      console.error("Failed to save CSRF session:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Unable to initialize CSRF protection",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      csrfToken,
+    });
+  });
+});
 
 export default router;
