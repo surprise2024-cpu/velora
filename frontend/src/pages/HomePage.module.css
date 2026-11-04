@@ -1,0 +1,149 @@
+
+.page {
+  min-height: 100vh;
+  background: #faf9f6;
+}
+
+.hero {
+  min-height: 520px;
+  padding: 80px max(32px, calc((100vw - 1216px) / 2));
+  background: linear-gradient(120deg, #172e29, #38574b);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+.heroContent {
+  max-width: 680px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #c49b63;
+}
+
+.heroTitle {
+  margin: 22px 0;
+  font-size: clamp(40px, 5vw, 70px);
+  line-height: 1.12;
+  letter-spacing: -2px;
+}
+
+.heroDescription {
+  max-width: 520px;
+  margin: 0 0 30px;
+  font-size: 17px;
+  line-height: 1.8;
+  color: #e2e8e3;
+}
+
+.heroButton {
+  display: inline-block;
+  padding: 15px 25px;
+  border-radius: 8px;
+  background: #c49b63;
+  color: #172e29;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.hotels {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 88px 32px;
+}
+
+.sectionHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 32px;
+  margin-bottom: 36px;
+}
+
+.sectionHeading h2 {
+  margin: 12px 0;
+  font-size: clamp(30px, 4vw, 44px);
+  color: #222a25;
+}
+
+.sectionDescription {
+  color: #68716b;
+  line-height: 1.7;
+}
+
+.searchField {
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.searchField input {
+  padding: 14px;
+  border: 1px solid #d8ded8;
+  border-radius: 8px;
+  background: #ffffff;
+  outline-offset: 3px;
+}
+
+.hotelGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.error {
+  color: #a52828;
+}
+
+.footer {
+  padding: 48px 20px;
+  background: #172e29;
+  color: #ffffff;
+  text-align: center;
+}
+
+.footer strong {
+  letter-spacing: 3px;
+}
+
+.footer p {
+  margin-top: 10px;
+  color: #c9d5cc;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 460px;
+    padding: 64px 24px;
+  }
+
+  .hotels {
+    padding: 60px 20px;
+  }
+
+  .sectionHeading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchField {
+    min-width: 0;
+  }
+
+  .hotelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .heroTitle {
+    letter-spacing: -1px;
+  }
+}
