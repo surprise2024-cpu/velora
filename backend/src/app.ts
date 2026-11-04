@@ -14,6 +14,7 @@ import adminRoomTypeRoutes from "./routes/adminRoomTypeRoutes.js";
 import adminRoomRoutes from "./routes/adminRoomRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import adminBookingRoutes from "./routes/adminBookingRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 
 export const app = express();
@@ -73,6 +74,7 @@ app.use("/api/v1/admin", adminRoomTypeRoutes);
 app.use("/api/v1/admin", adminRoomRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/admin", adminBookingRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 
 const csrfErrorHandler: ErrorRequestHandler = (
   error,
