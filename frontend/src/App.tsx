@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import LogoutButton from "./components/LogoutButton";
 import HotelDetailsPage from "./pages/HotelDetailsPage";
+import PaymentReturnPage from "./pages/PaymentReturnPage";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -18,6 +19,18 @@ export default function App() {
         path="/hotels/:branchId"
         element={<HotelDetailsPage />}
       />
+
+      
+      <Route
+        path="/payment/callback"
+        element={<PaymentReturnPage />}
+      />
+
+      <Route
+        path="/payment/return"
+        element={<PaymentReturnPage />}
+      />
+
 
       <Route
         path="/login"
