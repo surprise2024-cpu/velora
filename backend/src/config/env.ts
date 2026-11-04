@@ -47,7 +47,38 @@ function requireProductionUrl(
   return url;
 }
 
+
+function validatePaystackEnvironment(): void {
+  const secretKey = process.env.PAYSTACK_SECRET_KEY;
+
+  if (!secretKey?.trim()) {
+    throw new Error(
+      "PAYSTACK_SECRET_KEY is required"
+    );
+  }
+
+  if (!secretKey.startsWith("sk_test_")) {
+    throw new Error(
+      "Velora only supports Paystack Test Mode"
+    );
+  }
+
+  const baseUrl =
+    process.env.PAYSTACK_BASE_URL ??
+    "https://api.paystack.co";
+
+  if (baseUrl !== "https://api.paystack.co") {
+    throw new Error(
+      "PAYSTACK_BASE_URL must be https://api.paystack.co"
+    );
+  }
+}
+
+
+
 export function validateEnvironment(): void {
+  validatePaystackEnvironment();
+
   if (!isProduction) {
     return;
   }
@@ -59,5 +90,4 @@ export function validateEnvironment(): void {
   requireProductionUrl("GOOGLE_CALLBACK_URL", {
     allowPath: true,
   });
-
 }
