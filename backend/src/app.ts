@@ -12,6 +12,8 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import adminBranchRoutes from "./routes/adminBranchRoutes.js";
 import adminRoomTypeRoutes from "./routes/adminRoomTypeRoutes.js";
 import adminRoomRoutes from "./routes/adminRoomRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import adminBookingRoutes from "./routes/adminBookingRoutes.js";
 
 
 export const app = express();
@@ -69,7 +71,8 @@ app.use("/api/v1/branches", availabilityRoutes);
 app.use("/api/v1/admin", adminBranchRoutes);
 app.use("/api/v1/admin", adminRoomTypeRoutes);
 app.use("/api/v1/admin", adminRoomRoutes);
-
+app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/admin", adminBookingRoutes);
 
 const csrfErrorHandler: ErrorRequestHandler = (
   error,
