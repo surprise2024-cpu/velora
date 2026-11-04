@@ -1,0 +1,123 @@
+
+.panel {
+  margin-top: 24px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid #dfe7df;
+  border-radius: 14px;
+}
+
+.panel h3 {
+  margin: 0 0 24px;
+  color: #263b35;
+  font-size: 25px;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.details p {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.details span {
+  color: #68716b;
+}
+
+.details strong {
+  color: #263b35;
+  text-align: right;
+}
+
+.details .total {
+  margin-top: 12px;
+  font-size: 19px;
+}
+
+.notice {
+  margin-top: 22px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #f5f0e7;
+  color: #73572d;
+  line-height: 1.6;
+}
+
+.notice a {
+  color: #263b35;
+  font-weight: 700;
+}
+
+.error {
+  margin-top: 18px;
+  color: #b32626;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.cancelButton,
+.confirmButton,
+.accountLink {
+  padding: 13px 20px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+}
+
+.cancelButton {
+  border: 1px solid #d7dfd7;
+  background: #ffffff;
+  color: #263b35;
+  cursor: pointer;
+}
+
+.confirmButton,
+.accountLink {
+  border: none;
+  background: #263b35;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.confirmButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.accountLink {
+  display: inline-block;
+  margin-top: 16px;
+  text-decoration: none;
+}
+
+@media (max-width: 600px) {
+  .panel {
+    padding: 20px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+
+  .details p {
+    gap: 12px;
+  }
+}
