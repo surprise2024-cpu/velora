@@ -43,6 +43,14 @@ router.get("/:id/availability", async (req, res) => {
     (checkOutDate.getTime() - checkInDate.getTime()) /
     MS_PER_DAY;
 
+    
+  if (stayNights <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Check-out date must be after check-in date",
+    });
+  }
+
   if (stayNights > MAX_STAY_NIGHTS) {
     return res.status(400).json({
       success: false,
@@ -80,7 +88,9 @@ router.get("/:id/availability", async (req, res) => {
             bookingRooms: {
               none: {
                 booking: {
-                    status: "CONFIRMED",
+                    status: {
+                      in: ["PENDING", "CONFIRMED"],
+                    },
                     checkIn: { lt: new Date(checkOut) },
                     checkOut: { gt: new Date(checkIn) },
                 },
