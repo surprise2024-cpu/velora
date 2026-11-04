@@ -1,0 +1,76 @@
+
+.header {
+  background: #ffffff;
+  border-bottom: 1px solid #e8ebe7;
+}
+
+.container {
+  max-width: 1280px;
+  min-height: 84px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.logo {
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #263b35;
+  text-decoration: none;
+}
+
+.logo span {
+  color: #ba9158;
+}
+
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.navigation a {
+  font-size: 14px;
+  font-weight: 600;
+  color: #263b35;
+  text-decoration: none;
+}
+
+.navigation a:hover {
+  text-decoration: underline;
+}
+
+.navigation .accountButton {
+  padding: 12px 20px;
+  background: #263b35;
+  color: #ffffff;
+  border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    min-height: 72px;
+    padding: 0 18px;
+  }
+
+  .logo {
+    font-size: 21px;
+    letter-spacing: 2px;
+  }
+
+  .navigation {
+    gap: 12px;
+  }
+
+  .navigation a {
+    font-size: 12px;
+  }
+
+  .navigation .accountButton {
+    padding: 10px 12px;
+  }
+}
