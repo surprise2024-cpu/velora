@@ -173,7 +173,10 @@ export default function HotelDetailsPage() {
                 room availability and estimated pricing.
             </p>
 
-            <RoomAvailability branchId={branch.id} />
+            <RoomAvailability
+                branchId={branch.id}
+                branchName={branch.name}
+            />
             </section>
 
           </>
