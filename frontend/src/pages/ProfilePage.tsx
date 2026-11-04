@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import LogoutButton from "../components/LogoutButton";
 import { useAuth } from "../context/useAuth";
 import styles from "./ProfilePage.module.css";
+import EditProfile from "../components/EditProfile";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -102,45 +103,7 @@ export default function ProfilePage() {
 
           <div className={styles.mainContent}>
             <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Personal Information</h2>
-                  <p>
-                    Your account details from your
-                    authenticated Velora profile.
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.informationGrid}>
-                <div className={styles.informationField}>
-                  <span>Full Name</span>
-                  <strong>
-                    {user.name?.trim() || "Not provided"}
-                  </strong>
-                </div>
-
-                <div className={styles.informationField}>
-                  <span>Email Address</span>
-                  <strong>{user.email}</strong>
-                </div>
-
-                <div className={styles.informationField}>
-                  <span>Account Type</span>
-                  <strong>
-                    {user.role === "CUSTOMER"
-                      ? "Customer"
-                      : "Administrator"}
-                  </strong>
-                </div>
-
-                <div className={styles.informationField}>
-                  <span>Account ID</span>
-                  <strong className={styles.accountId}>
-                    {user.id}
-                  </strong>
-                </div>
-              </div>
+                <EditProfile />
             </section>
 
             <section className={styles.card}>
