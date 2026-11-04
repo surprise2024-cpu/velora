@@ -175,6 +175,14 @@
 }
 
 
+.selectButton:not(:disabled) {
+  cursor: pointer;
+}
+
+.selectButton:not(:disabled):hover {
+  background: #36574a;
+}
+
 .emptyState {
   padding: 24px;
   border: 1px solid #e2e8e2;
