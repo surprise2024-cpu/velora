@@ -8,8 +8,21 @@ import {
 import { prisma } from "../lib/prisma.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { generateToken } from "../config/csrf.js";
+import { z } from "zod";
 
 const router = Router();
+
+
+const updateProfileSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(2, "Name must contain at least 2 characters")
+      .max(100, "Name cannot exceed 100 characters"),
+  })
+  .strict();
+
 
 router.get("/google", async (req, res) => {
   try {
@@ -268,6 +281,67 @@ router.get("/me", async (req, res) => {
     });
   }
 });
+
+
+router.patch("/me", async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({
+      success: false,
+      message: "Not authenticated",
+    });
+  }
+
+  const validation = updateProfileSchema.safeParse(req.body);
+
+  if (!validation.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid profile information",
+      errors: validation.error.flatten(),
+    });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: req.session.userId,
+      },
+      data: {
+        name: validation.data.name,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "User account not found",
+      });
+    }
+
+    console.error("Failed to update profile:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to update profile",
+    });
+  }
+});
+
 
 
 router.post("/logout", (req, res) => {
