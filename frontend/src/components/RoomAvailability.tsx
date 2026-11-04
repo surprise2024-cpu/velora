@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "../lib/api";
 import styles from "./RoomAvailability.module.css";
+import BookingConfirmation from "./BookingConfirmation";
+import type { BookingSelection } from "./BookingConfirmation";
 
 type RoomAvailabilityItem = {
   roomTypeId: string;
@@ -19,6 +21,7 @@ type AvailabilityResponse = {
 
 type Props = {
   branchId: string;
+  branchName: string;
 };
 
 function formatLocalDate(date: Date): string {
@@ -50,7 +53,11 @@ function formatPrice(value: number, currency: string): string {
   }).format(value);
 }
 
-export default function RoomAvailability({ branchId }: Props) {
+export default function RoomAvailability({
+  branchId,
+  branchName,
+}: Props) {
+
   const today = formatLocalDate(new Date());
 
   const [checkIn, setCheckIn] = useState(today);
@@ -61,6 +68,8 @@ export default function RoomAvailability({ branchId }: Props) {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [selection, setSelection] = useState<BookingSelection | null>(null);
 
   const requestId = useRef(0);
 
@@ -86,6 +95,7 @@ export default function RoomAvailability({ branchId }: Props) {
     setRooms([]);
     setSearched(false);
     setError(null);
+    setSelection(null);
 
     const currentToday = formatLocalDate(new Date());
 
@@ -146,7 +156,37 @@ export default function RoomAvailability({ branchId }: Props) {
     setSearched(false);
     setError(null);
     setLoading(false);
+    setSelection(null);
   }
+
+    
+    function selectRoom(room: RoomAvailabilityItem) {
+    const price = Number(room.basePrice);
+
+    if (
+        room.availableRooms < 1 ||
+        room.maxGuests < guests ||
+        !Number.isFinite(price) ||
+        price < 0 ||
+        nights < 1
+    ) {
+        return;
+    }
+
+    setSelection({
+        branchId,
+        branchName,
+        roomTypeId: room.roomTypeId,
+        roomName: room.name,
+        checkIn,
+        checkOut,
+        guestCount: guests,
+        nightlyPrice: price,
+        currency: room.currency,
+        nights,
+    });
+}
+
 
   return (
     <div className={styles.container}>
@@ -192,18 +232,26 @@ export default function RoomAvailability({ branchId }: Props) {
 
         <div className={styles.field}>
           <label htmlFor="velora-guests">Guests</label>
-          <input
-            id="velora-guests"
-            type="number"
-            min="1"
-            step="1"
-            value={guests}
-            required
-            onChange={(event) => {
-              setGuests(Number(event.target.value));
-              updateSearch();
-            }}
-          />
+          
+            <input
+                id="velora-guests"
+                type="number"
+                min="1"
+                step="1"
+                value={guests}
+                required
+                onChange={(event) => {
+                    const rawValue = event.target.value;
+                    const normalized = rawValue.replace(/^0+(?=\d)/, "");
+
+                    setGuests(
+                    normalized === "" ? 0 : Number(normalized)
+                    );
+
+                    updateSearch();
+                }}
+            />
+
         </div>
 
         <button
@@ -227,7 +275,16 @@ export default function RoomAvailability({ branchId }: Props) {
         </p>
       )}
 
-      {searched && !loading && (
+      
+        {selection && (
+        <BookingConfirmation
+            selection={selection}
+            onCancel={() => setSelection(null)}
+        />
+        )}
+
+
+      {searched && !loading && !selection && (
         <div className={styles.results}>
           <div className={styles.resultsHeading}>
             <h3>Room Availability</h3>
@@ -313,20 +370,16 @@ export default function RoomAvailability({ branchId }: Props) {
                         <p>Price unavailable</p>
                       )}
 
-                      <button
+                      
+                        <button
                         type="button"
                         className={styles.selectButton}
-                        disabled
-                        title={
-                          canBook
-                            ? "Room selection will be enabled in the booking step"
-                            : "Room is unavailable"
-                        }
-                      >
-                        {canBook
-                          ? "Booking Coming Next"
-                          : "Unavailable"}
-                      </button>
+                        disabled={!canBook}
+                        onClick={() => selectRoom(room)}
+                        >
+                        {canBook ? "Select Room" : "Unavailable"}
+                        </button>
+
                     </div>
                   </article>
                 );
