@@ -53,6 +53,17 @@ router.get("/bookings", requireAdmin, async (_req: Request, res: Response) => {
       data: bookings,
     });
   } catch (error) {
+
+    if (
+      error instanceof Error &&
+      error.message === "BOOKING_PAYMENT_PENDING"
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "Booking has an active payment attempt",
+      });
+    }
+
     console.error("Failed to retrieve reservations:", error);
 
     return res.status(500).json({
@@ -87,6 +98,21 @@ router.patch(
               hashtextextended(${bookingId.data}, 1)
             )
           `;
+
+          const activePayment = await tx.payment.findFirst({
+            where: {
+              bookingId: bookingId.data,
+              status: "PENDING",
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          if (activePayment) {
+            throw new Error("BOOKING_PAYMENT_PENDING");
+          }
+
 
           const result = await tx.booking.updateMany({
             where: {
@@ -125,6 +151,17 @@ router.patch(
         data: updatedBooking,
       });
     } catch (error) {
+
+      if (
+        error instanceof Error &&
+        error.message === "BOOKING_PAYMENT_PENDING"
+      ) {
+        return res.status(409).json({
+          success: false,
+          message: "Booking has an active payment attempt",
+        });
+      }
+
       if (
         error instanceof Error &&
         error.message === "BOOKING_NOT_APPROVABLE"
@@ -164,12 +201,27 @@ router.patch(
     try {
       const cancelledBooking = await prisma.$transaction(
         async (tx) => {
+
           // Coordinate with reservation modifications.
           await tx.$executeRaw`
             SELECT pg_advisory_xact_lock(
               hashtextextended(${bookingId.data}, 1)
             )
           `;
+
+          const activePayment = await tx.payment.findFirst({
+            where: {
+              bookingId: bookingId.data,
+              status: "PENDING",
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          if (activePayment) {
+            throw new Error("BOOKING_PAYMENT_PENDING");
+          }
 
           const result = await tx.booking.updateMany({
             where: {
@@ -212,6 +264,17 @@ router.patch(
         data: cancelledBooking,
       });
     } catch (error) {
+
+      if (
+        error instanceof Error &&
+        error.message === "BOOKING_PAYMENT_PENDING"
+      ) {
+        return res.status(409).json({
+          success: false,
+          message: "Booking has an active payment attempt",
+        });
+      }
+
       if (
         error instanceof Error &&
         error.message === "BOOKING_NOT_CANCELLABLE"
@@ -320,6 +383,22 @@ router.patch(
         if (existing.status === "CANCELLED") {
           throw new Error("BOOKING_CANCELLED");
         }
+
+        
+        const activePayment = await tx.payment.findFirst({
+          where: {
+            bookingId: existing.id,
+            status: "PENDING",
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (activePayment) {
+          throw new Error("BOOKING_PAYMENT_PENDING");
+}
+
 
         const branchIds = [
           ...new Set(
@@ -461,6 +540,10 @@ router.patch(
     } catch (error) {
       if (error instanceof Error) {
         const knownErrors: Record<string, [number, string]> = {
+          BOOKING_PAYMENT_PENDING: [
+            409,
+            "Booking has an active payment attempt",
+          ],
           BOOKING_NOT_FOUND: [404, "Booking not found"],
           BOOKING_CANCELLED: [
             409,
