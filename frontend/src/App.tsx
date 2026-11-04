@@ -7,6 +7,12 @@ import HotelDetailsPage from "./pages/HotelDetailsPage";
 import PaymentReturnPage from "./pages/PaymentReturnPage";
 import ProfilePage from "./pages/ProfilePage";
 
+import AccountLayout from "./components/AccountLayout";
+import MyBookingsPage from "./pages/MyBookingsPage";
+import FavouritesPage from "./pages/FavouritesPage";
+import AccountSettingsPage from "./pages/AccountSettingsPage";
+
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
   "http://localhost:5000/api/v1";
@@ -47,9 +53,16 @@ export default function App() {
       />
 
       
+      
       <Route element={<ProtectedRoute allowedRole="CUSTOMER" />}>
-        <Route path="/account" element={<ProfilePage />} />
+        <Route path="/account" element={<AccountLayout />}>
+          <Route index element={<ProfilePage />} />
+          <Route path="bookings" element={<MyBookingsPage />} />
+          <Route path="favourites" element={<FavouritesPage />} />
+          <Route path="settings" element={<AccountSettingsPage />} />
+        </Route>
       </Route>
+
 
 
       <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
