@@ -1,0 +1,184 @@
+
+.container {
+  margin-top: 22px;
+  border-top: 1px solid #edf0eb;
+  padding-top: 18px;
+}
+
+.toggleButton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  color: #263b35;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.toggleButton:hover {
+  color: #557d68;
+}
+
+.content {
+  padding-top: 12px;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 18px;
+  background: #f3f6f2;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.summary span,
+.summary small {
+  color: #68716b;
+  font-size: 12px;
+}
+
+.summary strong {
+  color: #263b35;
+  font-size: 15px;
+}
+
+.paymentList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.paymentCard {
+  padding: 20px;
+  border: 1px solid #e3e8e2;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.paymentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.paymentHeader strong {
+  color: #263b35;
+  font-size: 20px;
+}
+
+.status {
+  padding: 7px 11px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.completed {
+  background: #e5f4e9;
+  color: #267143;
+}
+
+.pending {
+  background: #fff4da;
+  color: #956a16;
+}
+
+.failed,
+.cancelled {
+  background: #f7e9e9;
+  color: #a63c3c;
+}
+
+.unknown {
+  background: #edf0f2;
+  color: #52616b;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0;
+}
+
+.details div {
+  min-width: 0;
+}
+
+.details dt {
+  color: #68716b;
+  font-size: 12px;
+  margin-bottom: 7px;
+}
+
+.details dd {
+  margin: 0;
+  color: #263b35;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.reference {
+  overflow-wrap: anywhere;
+  font-family: monospace;
+}
+
+.empty {
+  padding: 22px;
+  background: #f8f9f7;
+  border-radius: 10px;
+}
+
+.empty strong {
+  color: #263b35;
+}
+
+.empty p {
+  color: #68716b;
+  font-size: 13px;
+}
+
+.error {
+  padding: 16px;
+  background: #fff0f0;
+  color: #9b2525;
+  border-radius: 8px;
+}
+
+.error button,
+.refreshButton {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid #d6ded7;
+  border-radius: 8px;
+  background: #fff;
+  color: #263b35;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refreshButton:hover,
+.error button:hover {
+  background: #e9f0ea;
+}
+
+@media (max-width: 600px) {
+  .details {
+    grid-template-columns: 1fr;
+  }
+
+  .paymentCard {
+    padding: 16px;
+  }
+}
