@@ -100,7 +100,7 @@ model Booking {
   checkIn    DateTime      @db.Date
   checkOut   DateTime      @db.Date
   guestCount Int
-  status     BookingStatus @default(CONFIRMED)
+  status     BookingStatus @default(PENDING)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
   userId     String?       @db.Uuid
@@ -111,6 +111,7 @@ model Booking {
 }
 
 enum BookingStatus {
+  PENDING
   CONFIRMED
   CANCELLED
 }
