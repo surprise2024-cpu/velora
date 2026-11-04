@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoutes";
 import LogoutButton from "./components/LogoutButton";
 import HotelDetailsPage from "./pages/HotelDetailsPage";
 import PaymentReturnPage from "./pages/PaymentReturnPage";
+import ProfilePage from "./pages/ProfilePage";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -45,17 +46,11 @@ export default function App() {
         }
       />
 
+      
       <Route element={<ProtectedRoute allowedRole="CUSTOMER" />}>
-        <Route
-          path="/account"
-          element={
-            <main>
-              <h1>Velora Customer Account</h1>
-              <LogoutButton />
-            </main>
-          }
-        />
+        <Route path="/account" element={<ProfilePage />} />
       </Route>
+
 
       <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
         <Route
