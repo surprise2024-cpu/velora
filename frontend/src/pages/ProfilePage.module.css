@@ -1,0 +1,265 @@
+
+.page {
+  min-height: 100vh;
+  background: #faf9f6;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 28px 90px;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #68716b;
+  font-size: 13px;
+}
+
+.breadcrumb a {
+  color: #355a4b;
+  text-decoration: none;
+}
+
+.pageHeader {
+  margin: 44px 0 36px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: #a47b46;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.pageHeader h1 {
+  margin: 0 0 14px;
+  color: #263b35;
+  font-size: clamp(32px, 4vw, 46px);
+}
+
+.pageHeader > p:last-child {
+  color: #68716b;
+  line-height: 1.7;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 290px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+}
+
+.sidebar,
+.card {
+  background: #ffffff;
+  border: 1px solid #e3e8e2;
+  border-radius: 14px;
+}
+
+.sidebar {
+  overflow: hidden;
+}
+
+.profileSummary {
+  padding: 30px 22px;
+  text-align: center;
+  border-bottom: 1px solid #e8ece7;
+}
+
+.avatar {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #263b35;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.profileSummary h2 {
+  margin: 0 0 8px;
+  color: #263b35;
+  font-size: 19px;
+}
+
+.profileSummary p {
+  margin: 0;
+  color: #68716b;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.accountNavigation {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 12px;
+}
+
+.accountNavigation a,
+.disabledLink {
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.activeLink {
+  background: #e9f0ea;
+  color: #263b35;
+}
+
+.disabledLink {
+  color: #9aa49c;
+  cursor: default;
+}
+
+.logoutArea {
+  padding: 18px 22px;
+  border-top: 1px solid #e8ece7;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.card {
+  padding: 30px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  color: #263b35;
+  font-size: 23px;
+}
+
+.cardHeader {
+  margin-bottom: 26px;
+}
+
+.cardHeader p,
+.cardDescription {
+  color: #68716b;
+  line-height: 1.7;
+}
+
+.informationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.informationField {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.informationField span {
+  color: #68716b;
+  font-size: 13px;
+}
+
+.informationField strong {
+  color: #263b35;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.accountId {
+  font-family: monospace;
+  font-size: 12px !important;
+}
+
+.quickLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.quickLink {
+  padding: 22px;
+  border: 1px solid #e3e8e2;
+  border-radius: 10px;
+  background: #fbfcfa;
+}
+
+.quickLink h3 {
+  margin: 0 0 10px;
+  color: #263b35;
+  font-size: 18px;
+}
+
+.quickLink p {
+  color: #68716b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.quickLink span {
+  display: inline-block;
+  margin-top: 14px;
+  color: #a47b46;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.exploreButton {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 13px 20px;
+  border-radius: 8px;
+  background: #263b35;
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.exploreButton:hover {
+  background: #36574a;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .profileSummary {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 24px 16px 60px;
+  }
+
+  .pageHeader {
+    margin: 30px 0;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .informationGrid,
+  .quickLinks {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
