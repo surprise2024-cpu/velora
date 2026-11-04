@@ -10,6 +10,9 @@ import { csrfSynchronisedProtection } from "./config/csrf.js";
 import type { ErrorRequestHandler } from "express";
 import { errorHandler } from "./middleware/errorHandler.js";
 import adminBranchRoutes from "./routes/adminBranchRoutes.js";
+import adminRoomTypeRoutes from "./routes/adminRoomTypeRoutes.js";
+import adminRoomRoutes from "./routes/adminRoomRoutes.js";
+
 
 export const app = express();
 
@@ -64,6 +67,9 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/branches", branchRoutes);
 app.use("/api/v1/branches", availabilityRoutes);
 app.use("/api/v1/admin", adminBranchRoutes);
+app.use("/api/v1/admin", adminRoomTypeRoutes);
+app.use("/api/v1/admin", adminRoomRoutes);
+
 
 const csrfErrorHandler: ErrorRequestHandler = (
   error,
