@@ -1,0 +1,147 @@
+
+.formCard {
+  margin-bottom: 22px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 9px;
+  color: #102c48;
+}
+
+.formHeader {
+  margin-bottom: 20px;
+}
+
+.formHeader h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.formHeader p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.field span {
+  color: #102c48;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d7dfe7;
+  border-radius: 6px;
+  background: #fff;
+  color: #102c48;
+  font: inherit;
+  font-size: 12px;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: 2px solid #d7ad62;
+  outline-offset: 1px;
+}
+
+.field input:disabled,
+.field select:disabled,
+.field textarea:disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.field small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.cancelButton,
+.saveButton {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #102c48;
+}
+
+.saveButton {
+  border: 1px solid #102c48;
+  background: #102c48;
+  color: #fff;
+}
+
+.saveButton:hover:not(:disabled) {
+  background: #24435f;
+}
+
+.cancelButton:disabled,
+.saveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.error {
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  background: #fff1f2;
+  color: #991b1b;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .formCard {
+    padding: 16px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth {
+    grid-column: auto;
+  }
+}
