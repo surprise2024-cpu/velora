@@ -209,6 +209,98 @@
 }
 
 
+.deactivateButton {
+  margin-left: 8px;
+  padding: 7px 12px;
+  border: 1px solid #f0b7b7;
+  border-radius: 6px;
+  background: #fff5f5;
+  color: #a32626;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.deactivateButton:hover:not(:disabled) {
+  background: #fee2e2;
+}
+
+.deactivateButton:focus-visible {
+  outline: 2px solid #a32626;
+  outline-offset: 2px;
+}
+
+.deactivateButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+
+/* Responsive branch table */
+
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  min-width: 760px;
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.actionGroup button {
+  flex: 0 0 auto;
+  margin: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .branchesSection {
+    padding: 14px;
+  }
+
+  .table th,
+  .table td {
+    padding: 10px;
+  }
+
+  .table th:last-child,
+  .table td:last-child {
+    min-width: 165px;
+  }
+}
+
+@media (max-width: 600px) {
+  .pageHeader {
+    flex-wrap: wrap;
+  }
+
+  .table {
+    min-width: 760px;
+  }
+
+  .actionGroup {
+    gap: 6px;
+  }
+
+  .actionGroup button {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+
+
 @media (max-width: 768px) {
   .statistics {
     grid-template-columns: 1fr;
