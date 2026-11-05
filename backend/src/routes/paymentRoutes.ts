@@ -1,23 +1,24 @@
-import { randomUUID } from "node:crypto";
+
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+
+import {
+  bookingTotalCents,
+  initializeBookingPayment,
+  PaymentInitializationError,
+} from "../services/paymentInitializationService.js";
+
+import {
+  authorizeGuestBooking,
+} from "../lib/guestBookingAccess.js";
 
 const router = Router();
 const DAY_MS = 86_400_000;
 
 const initializeSchema = z.object({ bookingId: z.uuid() });
 
-interface PaystackInitializeResponse {
-  status: boolean;
-  message: string;
-  data?: {
-    authorization_url: string;
-    access_code: string;
-    reference: string;
-  };
-}
 
 interface PaystackVerifyResponse {
   status: boolean;
@@ -38,153 +39,113 @@ type BookingForTotal = {
   bookingRooms: PricedRoom[];
 };
 
-function bookingTotalCents(booking: BookingForTotal): number | null {
-  const nights =
-    (booking.checkOut.getTime() - booking.checkIn.getTime()) / DAY_MS;
-  if (!Number.isInteger(nights) || nights <= 0 || booking.bookingRooms.length === 0) {
-    return null;
-  }
-
-  let nightlyCents = 0;
-  for (const room of booking.bookingRooms) {
-    if (room.price === null) return null;
-    const parts = room.price.toFixed(2).split(".");
-    if (parts.length !== 2) return null;
-    const rands = Number(parts[0]);
-    const cents = Number(parts[1]);
-    if (!Number.isSafeInteger(rands) || !Number.isSafeInteger(cents)) return null;
-    nightlyCents += rands * 100 + cents;
-    if (!Number.isSafeInteger(nightlyCents)) return null;
-  }
-
-  const total = nightlyCents * nights;
-  return Number.isSafeInteger(total) && total > 0 ? total : null;
-}
-
-router.post("/initialize", requireAuth, async (req, res) => {
+router.post("/guest/initialize", async (req, res) => {
   const parsed = initializeSchema.safeParse(req.body);
+
   if (!parsed.success) {
-    return res.status(400).json({ success: false, message: "Invalid booking ID" });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid booking ID",
+    });
   }
 
-  const bookingId = parsed.data.bookingId;
-  const userId = res.locals.authUser.id;
+  const authorization = req.headers.authorization;
+
+  const guestToken =
+    typeof authorization === "string" &&
+    authorization.startsWith("Bearer ")
+      ? authorization.slice(7)
+      : null;
 
   try {
-    // Only database work runs under this lock. No Paystack network request here.
-    const initialized = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`
-        SELECT pg_advisory_xact_lock(hashtextextended(${bookingId}, 1))
-      `;
+    const authorized = await authorizeGuestBooking(
+      parsed.data.bookingId,
+      guestToken
+    );
 
-      const booking = await tx.booking.findFirst({
-        where: { id: bookingId, userId },
-        include: {
-          user: { select: { email: true } },
-          bookingRooms: { select: { price: true } },
-          payments: {
-            where: { status: { in: ["PENDING", "COMPLETED"] } },
-            select: { status: true },
-          },
-        },
-      });
-
-      if (!booking) throw new Error("BOOKING_NOT_FOUND");
-      if (booking.status === "CANCELLED") throw new Error("BOOKING_CANCELLED");
-      if (booking.payments.some((p) => p.status === "COMPLETED")) {
-        throw new Error("BOOKING_ALREADY_PAID");
-      }
-      if (booking.payments.some((p) => p.status === "PENDING")) {
-        throw new Error("PAYMENT_ALREADY_PENDING");
-      }
-      if (!booking.user?.email) throw new Error("CUSTOMER_EMAIL_MISSING");
-
-      const totalCents = bookingTotalCents(booking);
-      if (totalCents === null) throw new Error("INVALID_BOOKING_AMOUNT");
-
-      const reference = `velora-${randomUUID()}`;
-      const amount = (totalCents / 100).toFixed(2);
-      const payment = await tx.payment.create({
-        data: { bookingId, reference, amount, currency: "ZAR", status: "PENDING" },
-      });
-
-      return { payment, reference, amount, totalCents, email: booking.user.email };
-    });
-
-    const { payment, reference, amount, totalCents, email } = initialized;
-    const response = await fetch("https://api.paystack.co/transaction/initialize", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        amount: totalCents,
-        currency: "ZAR",
-        reference,
-        callback_url: `${process.env.FRONTEND_URL ?? "http://localhost:5173"}/payment/callback`,
-        metadata: { bookingId, paymentId: payment.id },
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-
-    const result = (await response.json()) as PaystackInitializeResponse;
-    if (
-      !response.ok ||
-      !result.status ||
-      !result.data?.authorization_url ||
-      result.data.reference !== reference
-    ) {
-      // Only an explicit provider rejection can safely finalize this attempt.
-      // A timeout or ambiguous response remains PENDING until investigated.
-      if (result.status === false) {
-        await prisma.payment.updateMany({
-          where: { id: payment.id, status: "PENDING" },
-          data: { status: "FAILED" },
-        });
-      }
-      return res.status(502).json({
+    if (!authorized) {
+      return res.status(404).json({
         success: false,
-        message: "Paystack could not initialize payment",
-        reference,
+        message: "Booking not found",
       });
     }
+
+    const payment = await initializeBookingPayment(
+      parsed.data.bookingId,
+      {
+        type: "guest",
+        token: guestToken as string,
+      }
+    );
 
     return res.status(200).json({
       success: true,
-      message: "Payment initialized successfully",
-      data: {
-        paymentId: payment.id,
-        reference,
-        authorizationUrl: result.data.authorization_url,
-        amount,
-        currency: "ZAR",
-      },
+      message: "Guest payment initialized successfully",
+      data: payment,
     });
   } catch (error) {
-    const knownErrors: Record<string, [number, string]> = {
-      BOOKING_NOT_FOUND: [404, "Booking not found"],
-      BOOKING_CANCELLED: [409, "Cancelled bookings cannot be paid"],
-      BOOKING_ALREADY_PAID: [409, "Booking has already been paid"],
-      PAYMENT_ALREADY_PENDING: [409, "Booking already has an active payment attempt"],
-      CUSTOMER_EMAIL_MISSING: [400, "Booking customer email is missing"],
-      INVALID_BOOKING_AMOUNT: [409, "Invalid booking amount"],
-    };
-    if (error instanceof Error) {
-      const knownError = knownErrors[error.message];
-      if (knownError) {
-        const [status, message] = knownError;
-        return res.status(status).json({ success: false, message });
-      }
+    if (error instanceof PaymentInitializationError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
     }
-    console.error("Failed to initialize payment:", error);
+
+    console.error(
+      "Guest payment initialization failed:",
+      error
+    );
+
     return res.status(502).json({
       success: false,
       message: "Payment initialization failed or is uncertain",
     });
   }
 });
+
+
+
+router.post("/initialize", requireAuth, async (req, res) => {
+  const parsed = initializeSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid booking ID",
+    });
+  }
+
+  try {
+    const payment = await initializeBookingPayment(
+      parsed.data.bookingId,
+      {
+        type: "customer",
+        userId: res.locals.authUser.id,
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Payment initialized successfully",
+      data: payment,
+    });
+  } catch (error) {
+    if (error instanceof PaymentInitializationError) {
+      return res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    console.error("Failed to initialize payment:", error);
+
+    return res.status(502).json({
+      success: false,
+      message: "Payment initialization failed or is uncertain",
+    });
+  }
+});
+
 
 router.post("/:reference/verify", requireAuth, async (req, res) => {
   const reference = z.string().min(1).max(200).safeParse(req.params.reference);
