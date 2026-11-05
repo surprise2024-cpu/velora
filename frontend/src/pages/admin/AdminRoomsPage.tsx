@@ -1,0 +1,381 @@
+
+import { useEffect, useState } from "react";
+import { apiRequest } from "../../lib/api";
+import styles from "./AdminRoomsPage.module.css";
+import AddRoomForm, {
+  type EditableRoom,
+} from "../../components/admin/AddRoomForm";
+
+type AdminRoom = {
+  id: string;
+  branchId: string;
+  roomTypeId: string;
+  roomNumber: string;
+  floor: number | null;
+  isActive: boolean;
+  branch: {
+    id: string;
+    name: string;
+    city: string;
+    isActive: boolean;
+  };
+  roomType: {
+    id: string;
+    name: string;
+    maxGuests: number;
+    basePrice: string | number;
+    currency: string;
+    isActive: boolean;
+  };
+};
+
+type RoomsResponse = {
+  success: boolean;
+  data: AdminRoom[];
+};
+
+export default function AdminRoomsPage() {
+  const [rooms, setRooms] = useState<AdminRoom[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [roomTypeFilter, setRoomTypeFilter] = useState("all");
+
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [editingRoom, setEditingRoom] = useState<EditableRoom | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadRooms() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const response = await apiRequest<RoomsResponse>(
+          "/admin/rooms"
+        );
+
+        if (!response.success || !Array.isArray(response.data)) {
+          throw new Error("Unexpected rooms response.");
+        }
+
+        if (active) {
+          setRooms(response.data);
+        }
+      } catch (err) {
+        if (active) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Unable to load rooms."
+          );
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadRooms();
+
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
+
+  const branches = Array.from(
+    new Map(
+      rooms.map((room) => [room.branch.id, room.branch])
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  const roomTypes = Array.from(
+    new Map(
+      rooms
+        .filter(
+          (room) =>
+            branchFilter === "all" ||
+            room.branchId === branchFilter
+        )
+        .map((room) => [
+          room.roomType.id,
+          room.roomType,
+        ])
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  const filteredRooms = rooms.filter((room) => {
+    const matchesBranch =
+      branchFilter === "all" ||
+      room.branchId === branchFilter;
+
+    const matchesRoomType =
+      roomTypeFilter === "all" ||
+      room.roomTypeId === roomTypeFilter;
+
+    return matchesBranch && matchesRoomType;
+  });
+
+  const activeRooms = rooms.filter(
+    (room) => room.isActive
+  ).length;
+
+  const statistics = [
+    { label: "Total Rooms", value: rooms.length },
+    { label: "Active Rooms", value: activeRooms },
+    {
+      label: "Inactive Rooms",
+      value: rooms.length - activeRooms,
+    },
+  ];
+
+  function formatPrice(room: AdminRoom) {
+    const amount = Number(room.roomType.basePrice);
+
+    if (!Number.isFinite(amount)) {
+      return "Unavailable";
+    }
+
+    try {
+      return new Intl.NumberFormat("en-ZA", {
+        style: "currency",
+        currency: room.roomType.currency,
+      }).format(amount);
+    } catch {
+      return `${room.roomType.currency} ${amount.toFixed(2)}`;
+    }
+  }
+
+    function openAddForm() {
+    setEditingRoom(null);
+    setShowAddForm(true);
+    }
+
+    function openEditForm(room: AdminRoom) {
+    setEditingRoom(room);
+    setShowAddForm(true);
+    }
+
+    function closeRoomForm() {
+    setEditingRoom(null);
+    setShowAddForm(false);
+    }
+
+    function handleRoomSaved() {
+    closeRoomForm();
+    setReloadKey((value) => value + 1);
+    }
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.pageHeader}>
+        <div>
+          <h1>Rooms</h1>
+          <p>
+            Manage physical rooms across Velora hotel branches.
+          </p>
+        </div>
+
+        <button
+            type="button"
+            className={styles.addButton}
+            onClick={openAddForm}
+            >
+            + Add Room
+        </button>
+      </header>
+
+      {loading && (
+        <p role="status" className={styles.message}>
+          Loading rooms...
+        </p>
+      )}
+
+      {error && (
+        <div role="alert" className={styles.error}>
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => setReloadKey((value) => value + 1)}
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && (
+        <>
+          <section
+            className={styles.statistics}
+            aria-label="Room statistics"
+          >
+            {statistics.map((stat) => (
+              <article
+                key={stat.label}
+                className={styles.statCard}
+              >
+                <span>{stat.label}</span>
+                <strong>{stat.value}</strong>
+              </article>
+            ))}
+          </section>
+
+          <section className={styles.roomsSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Physical Room Directory</h2>
+              <span>{filteredRooms.length} rooms shown</span>
+            </div>
+
+            <div className={styles.filters}>
+              <label>
+                <span>Hotel Branch</span>
+                <select
+                  value={branchFilter}
+                  onChange={(event) => {
+                    setBranchFilter(event.target.value);
+                    setRoomTypeFilter("all");
+                  }}
+                >
+                  <option value="all">All Branches</option>
+
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                <span>Room Type</span>
+                <select
+                  value={roomTypeFilter}
+                  onChange={(event) =>
+                    setRoomTypeFilter(event.target.value)
+                  }
+                >
+                  <option value="all">All Room Types</option>
+
+                  {roomTypes.map((roomType) => (
+                    <option
+                      key={roomType.id}
+                      value={roomType.id}
+                    >
+                      {roomType.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {filteredRooms.length === 0 ? (
+              <p className={styles.message}>
+                No rooms found for the selected filters.
+              </p>
+            ) : (
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Room Number</th>
+                      <th scope="col">Branch</th>
+                      <th scope="col">Room Type</th>
+                      <th scope="col">Floor</th>
+                      <th scope="col">Guests</th>
+                      <th scope="col">Price / Night</th>
+                      <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredRooms.map((room) => (
+                      <tr key={room.id}>
+                        <td className={styles.roomNumber}>
+                          {room.roomNumber}
+                        </td>
+
+                        <td>
+                          {room.branch.name}
+                          <span className={styles.subText}>
+                            {room.branch.city}
+                          </span>
+                        </td>
+
+                        <td>{room.roomType.name}</td>
+
+                        <td>{room.floor ?? "—"}</td>
+
+                        <td>{room.roomType.maxGuests}</td>
+
+                        <td>{formatPrice(room)}</td>
+
+                        <td>
+                          <span
+                            className={`${styles.status} ${
+                              room.isActive
+                                ? styles.active
+                                : styles.inactive
+                            }`}
+                          >
+                            {room.isActive
+                              ? "Active"
+                              : "Inactive"}
+                          </span>
+                        </td>
+
+                        <td>
+                          <div className={styles.actionGroup}>
+                            <button
+                                type="button"
+                                className={styles.editButton}
+                                onClick={() => openEditForm(room)}
+                                disabled={
+                                    !room.branch.isActive ||
+                                    !room.roomType.isActive
+                                }
+                                >
+                                Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              className={
+                                room.isActive
+                                  ? styles.deactivateButton
+                                  : styles.activateButton
+                              }
+                              disabled
+                              title="Reservation-safe status controls are coming next"
+                            >
+                              {room.isActive
+                                ? "Deactivate"
+                                : "Activate"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        </>
+      )}
+
+      {showAddForm && (
+        <AddRoomForm
+            key={editingRoom?.id ?? "new-room"}
+            room={editingRoom ?? undefined}
+            onCancel={closeRoomForm}
+            onSaved={handleRoomSaved}
+        />
+        )}
+    </main>
+  );
+}
