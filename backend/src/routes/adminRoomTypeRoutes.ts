@@ -9,6 +9,59 @@ const router = Router();
 
 router.use(requireAdmin);
 
+
+router.get("/room-types", async (_req, res, next) => {
+  try {
+    const roomTypes = await prisma.roomType.findMany({
+      select: {
+        id: true,
+        branchId: true,
+        name: true,
+        description: true,
+        maxGuests: true,
+        basePrice: true,
+        currency: true,
+        isActive: true,
+        images: true,
+        amenities: true,
+        createdAt: true,
+        updatedAt: true,
+        branch: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            isActive: true,
+          },
+        },
+        _count: {
+          select: {
+            rooms: true,
+          },
+        },
+      },
+      orderBy: [
+        {
+          branch: {
+            name: "asc",
+          },
+        },
+        {
+          name: "asc",
+        },
+      ],
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: roomTypes,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 const createRoomTypeSchema = z.object({
   name: z.string().trim().min(1).max(150),
   description: z.string().trim().optional(),
@@ -171,6 +224,7 @@ router.patch("/room-types/:id", async (req, res, next) => {
 });
 
 
+
 router.delete("/room-types/:id", async (req, res, next) => {
   const parsedId = z.uuid().safeParse(req.params.id);
 
@@ -182,41 +236,234 @@ router.delete("/room-types/:id", async (req, res, next) => {
   }
 
   try {
-    const roomType = await prisma.roomType.findUnique({
-      where: { id: parsedId.data },
-      select: {
-        id: true,
-        isActive: true,
-      },
-    });
-
-    if (!roomType) {
-      return res.status(404).json({
-        success: false,
-        message: "Room type not found",
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.roomType.findUnique({
+        where: { id: parsedId.data },
+        select: {
+          id: true,
+          branchId: true,
+        },
       });
-    }
 
-    if (!roomType.isActive) {
-      return res.status(409).json({
-        success: false,
-        message: "Room type is already inactive",
+      if (!existing) {
+        return { outcome: "NOT_FOUND" as const };
+      }
+
+      // Coordinate with booking creation and branch operations.
+      await tx.$queryRaw`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(${existing.branchId}::text, 0)
+        )
+      `;
+
+      const roomType = await tx.roomType.findUnique({
+        where: { id: existing.id },
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+        },
       });
+
+      if (!roomType) {
+        return { outcome: "NOT_FOUND" as const };
+      }
+
+      if (!roomType.isActive) {
+        return { outcome: "ALREADY_INACTIVE" as const };
+      }
+
+      const dates = await tx.$queryRaw<{ today: Date }[]>`
+        SELECT CURRENT_DATE AS today
+      `;
+
+      const today = dates[0]?.today;
+
+      if (!today) {
+        throw new Error("Unable to determine database date");
+      }
+
+      const protectedBookings = await tx.booking.count({
+        where: {
+          checkOut: { gt: today },
+          bookingRooms: {
+            some: {
+              room: {
+                roomTypeId: roomType.id,
+              },
+            },
+          },
+          OR: [
+            { status: "CONFIRMED" },
+            {
+              status: "PENDING",
+              payments: {
+                some: {
+                  status: {
+                    in: ["PENDING", "COMPLETED"],
+                  },
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      if (protectedBookings > 0) {
+        return {
+          outcome: "HAS_RESERVATIONS" as const,
+          count: protectedBookings,
+        };
+      }
+
+      await tx.roomType.update({
+        where: { id: roomType.id },
+        data: { isActive: false },
+      });
+
+      return {
+        outcome: "DEACTIVATED" as const,
+        name: roomType.name,
+      };
+    });
+
+    switch (result.outcome) {
+      case "NOT_FOUND":
+        return res.status(404).json({
+          success: false,
+          message: "Room type not found",
+        });
+
+      case "ALREADY_INACTIVE":
+        return res.status(409).json({
+          success: false,
+          message: "Room type is already inactive",
+        });
+
+      case "HAS_RESERVATIONS":
+        return res.status(409).json({
+          success: false,
+          message:
+            `Cannot deactivate this room type. ` +
+            `${result.count} protected reservation(s) ` +
+            `have not yet checked out.`,
+        });
+
+      case "DEACTIVATED":
+        return res.status(200).json({
+          success: true,
+          message: `${result.name} deactivated successfully`,
+        });
     }
-
-    await prisma.roomType.update({
-      where: { id: parsedId.data },
-      data: { isActive: false },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Room type deactivated successfully",
-    });
   } catch (error) {
     next(error);
   }
 });
 
+router.patch("/room-types/:id/activate", async (req, res, next) => {
+    const parsedId = z.uuid().safeParse(req.params.id);
+
+    if (!parsedId.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid room type ID",
+      });
+    }
+
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Read the branch ID before acquiring its lock.
+        const existing = await tx.roomType.findUnique({
+          where: { id: parsedId.data },
+          select: {
+            id: true,
+            branchId: true,
+          },
+        });
+
+        if (!existing) {
+          return { outcome: "NOT_FOUND" as const };
+        }
+
+        // Coordinate with branch and booking operations.
+        await tx.$queryRaw`
+          SELECT pg_advisory_xact_lock(
+            hashtextextended(${existing.branchId}::text, 0)
+          )
+        `;
+
+        // Recheck state after acquiring the lock.
+        const roomType = await tx.roomType.findUnique({
+          where: { id: existing.id },
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+            branch: {
+              select: { isActive: true },
+            },
+          },
+        });
+
+        if (!roomType) {
+          return { outcome: "NOT_FOUND" as const };
+        }
+
+        if (!roomType.branch.isActive) {
+          return { outcome: "BRANCH_INACTIVE" as const };
+        }
+
+        if (roomType.isActive) {
+          return { outcome: "ALREADY_ACTIVE" as const };
+        }
+
+        const updated = await tx.roomType.update({
+          where: { id: roomType.id },
+          data: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+          },
+        });
+
+        return {
+          outcome: "ACTIVATED" as const,
+          roomType: updated,
+        };
+      });
+
+      switch (result.outcome) {
+        case "NOT_FOUND":
+          return res.status(404).json({
+            success: false,
+            message: "Room type not found",
+          });
+
+        case "BRANCH_INACTIVE":
+          return res.status(409).json({
+            success: false,
+            message:
+              "Activate the hotel branch before activating this room type",
+          });
+
+        case "ALREADY_ACTIVE":
+          return res.status(409).json({
+            success: false,
+            message: "Room type is already active",
+          });
+
+        case "ACTIVATED":
+          return res.status(200).json({
+            success: true,
+            message: `${result.roomType.name} activated successfully`,
+            data: result.roomType,
+          });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default router;
