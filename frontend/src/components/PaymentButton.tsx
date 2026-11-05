@@ -16,9 +16,13 @@ type InitializeResponse = {
 
 type Props = {
   bookingId: string;
+  guestToken?: string;
 };
 
-export default function PaymentButton({ bookingId }: Props) {
+export default function PaymentButton({
+  bookingId,
+  guestToken,
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,10 +33,28 @@ export default function PaymentButton({ bookingId }: Props) {
     setError(null);
 
     try {
+      const isGuest = typeof guestToken === "string";
+
+      if (
+        isGuest &&
+        !/^[a-f0-9]{64}$/.test(guestToken)
+      ) {
+        throw new Error("Invalid guest booking access token.");
+      }
+
+      const endpoint = isGuest
+        ? "/payments/guest/initialize"
+        : "/payments/initialize";
+
       const response = await apiRequest<InitializeResponse>(
-        "/payments/initialize",
+        endpoint,
         {
           method: "POST",
+          headers: isGuest
+            ? {
+                Authorization: `Bearer ${guestToken}`,
+              }
+            : undefined,
           body: JSON.stringify({ bookingId }),
         }
       );
@@ -45,7 +67,9 @@ export default function PaymentButton({ bookingId }: Props) {
         throw new Error("Unable to initialize payment.");
       }
 
-      const checkoutUrl = new URL(response.data.authorizationUrl);
+      const checkoutUrl = new URL(
+        response.data.authorizationUrl
+      );
 
       if (
         checkoutUrl.protocol !== "https:" ||
@@ -54,12 +78,13 @@ export default function PaymentButton({ bookingId }: Props) {
         throw new Error("Unexpected payment checkout URL.");
       }
 
-      // Keep the reference for recovery after redirect.
       sessionStorage.setItem(
         "velora.pendingPayment",
         JSON.stringify({
           bookingId,
           reference: response.data.reference,
+          checkoutType: isGuest ? "guest" : "customer",
+          ...(isGuest ? { guestToken } : {}),
         })
       );
 
