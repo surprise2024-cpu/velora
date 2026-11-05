@@ -6,6 +6,8 @@ import AddBranchForm, {
 } from "../../components/admin/AddBranchForm";
 import styles from "./AdminBranchesPage.module.css";
 import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
+import AdminImageManager from "../../components/admin/AdminImageManager";
+import AdminModal from "../../components/admin/AdminModal";
 
 type AdminBranch = EditableBranch & {
   isActive: boolean;
@@ -35,8 +37,16 @@ export default function AdminBranchesPage() {
     action: "activate" | "deactivate";
   } | null>(null);
 
-const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
+  const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
 
+  const [imageBranchId, setImageBranchId] =
+  useState<string | null>(null);
+
+  const selectedImageBranch =
+    branches.find((branch) => branch.id === imageBranchId) ??
+    null;
+
+    const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -200,20 +210,66 @@ async function handleBranchStatusChange() {
       )}
 
       {(showAddForm || selectedFormBranch) && (
-        <AddBranchForm
-          key={selectedFormBranch?.id ?? "new-branch"}
-          brandId={
-            selectedFormBranch?.brandId ??
-            branches[0]?.brandId ??
-            ""
+        <AdminModal
+          title={
+            selectedFormBranch
+              ? "Edit Branch"
+              : "Add New Branch"
           }
-          branch={selectedFormBranch ?? undefined}
-          onCancel={() => {
+          subtitle={
+            selectedFormBranch
+              ? `Update details for ${selectedFormBranch.name}`
+              : "Create a new Velora hotel location."
+          }
+          size="medium"
+          onClose={() => {
             setShowAddForm(false);
             setEditingBranch(null);
           }}
-          onSaved={handleSaved}
-        />
+        >
+          <AddBranchForm
+            key={selectedFormBranch?.id ?? "new-branch"}
+            brandId={
+              selectedFormBranch?.brandId ??
+              branches[0]?.brandId ??
+              ""
+            }
+            branch={selectedFormBranch ?? undefined}
+            onCancel={() => {
+              setShowAddForm(false);
+              setEditingBranch(null);
+            }}
+            onSaved={handleSaved}
+          />
+        </AdminModal>
+      )}
+
+      {selectedImageBranch && (
+        <AdminModal
+          title="Manage Branch Images"
+          subtitle={selectedImageBranch.name}
+          size="large"
+          canClose={!imageUploading}
+          onClose={() => setImageBranchId(null)} 
+        >
+          <AdminImageManager
+            key={selectedImageBranch.id}
+            targetType="branch"
+            targetId={selectedImageBranch.id}
+            targetName={selectedImageBranch.name}
+            images={selectedImageBranch.images ?? []}
+            onImagesChanged={(images) => {
+              setBranches((current) =>
+                current.map((branch) =>
+                  branch.id === selectedImageBranch.id
+                    ? { ...branch, images }
+                    : branch
+                )
+              );
+            }}
+            onUploadingChange={setImageUploading}
+          />
+        </AdminModal>
       )}
 
       {loading && (
@@ -305,6 +361,20 @@ async function handleBranchStatusChange() {
                         
                         <td>
                           <div className={styles.actionGroup}>
+
+                              <button
+                                type="button"
+                                className={styles.editButton}
+                                disabled={changingStatusId !== null}
+                                onClick={() => {
+                                  setImageBranchId(branch.id);
+                                  setSuccess("");
+                                }}
+                                
+                              >
+                                Manage Images
+                              </button>
+
                             <button
                               type="button"
                               className={styles.editButton}
