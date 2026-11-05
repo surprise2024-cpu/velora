@@ -1,0 +1,182 @@
+
+.page {
+  width: 100%;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.header h1 {
+  margin: 0 0 8px;
+  color: #263b35;
+  font-size: clamp(24px, 3vw, 32px);
+}
+
+.header p {
+  margin: 0;
+  color: #738077;
+  font-size: 14px;
+}
+
+.count {
+  padding: 9px 14px;
+  border-radius: 20px;
+  background: #eaf1ea;
+  color: #476c54;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e3e9e3;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(27, 49, 37, 0.04);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  background: linear-gradient(135deg, #edf4ec, #f8faf7);
+}
+
+.hotelIcon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
+  background: #456a53;
+  color: white;
+  font-size: 27px;
+  font-weight: 700;
+}
+
+.cardBody {
+  padding: 22px;
+}
+
+.location {
+  margin-bottom: 10px;
+  color: #66846e;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.cardBody h2 {
+  margin: 0 0 10px;
+  color: #263b35;
+  font-size: 21px;
+}
+
+.address {
+  margin: 0 0 18px;
+  color: #6c786f;
+  font-size: 13px;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+  color: #d2a34d;
+}
+
+.rating span {
+  color: #65746a;
+  font-size: 12px;
+}
+
+.viewLink,
+.exploreLink {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: #456a53;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.viewLink:hover,
+.exploreLink:hover {
+  background: #345540;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 65px 24px;
+  border: 1px dashed #d7e1d8;
+  border-radius: 14px;
+  background: #fbfcfa;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: #779984;
+  font-size: 56px;
+}
+
+.empty h2 {
+  margin: 0;
+  color: #263b35;
+}
+
+.empty p {
+  margin: 0 0 8px;
+  color: #728077;
+  font-size: 14px;
+}
+
+.message {
+  padding: 30px;
+  color: #647369;
+}
+
+.error {
+  padding: 20px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #a42c2c;
+}
+
+.error button {
+  padding: 10px 16px;
+  border: 1px solid #e5b9b9;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
