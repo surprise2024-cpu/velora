@@ -1,0 +1,144 @@
+
+.formCard {
+  padding: 22px;
+  margin-bottom: 22px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+  color: #102c48;
+}
+
+.formHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.formHeader h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.formHeader p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.closeButton {
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field span {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid #d7dfe7;
+  border-radius: 6px;
+  background: #fff;
+  color: #102c48;
+  font: inherit;
+  font-size: 12px;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: 2px solid #d7ad62;
+  outline-offset: 1px;
+}
+
+.field input:disabled,
+.field select:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+}
+
+.helperText {
+  margin: 16px 0 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.error {
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #fecdd3;
+  border-radius: 6px;
+  background: #fff1f2;
+  color: #991b1b;
+  font-size: 12px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.cancelButton,
+.saveButton {
+  padding: 10px 17px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid #d7dfe7;
+  background: #fff;
+  color: #102c48;
+}
+
+.saveButton {
+  border: 1px solid #102c48;
+  background: #102c48;
+  color: #fff;
+}
+
+.cancelButton:disabled,
+.saveButton:disabled,
+.closeButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .formCard {
+    padding: 16px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-wrap: wrap;
+  }
+}
