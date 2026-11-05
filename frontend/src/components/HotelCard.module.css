@@ -25,6 +25,19 @@
   text-align: center;
 }
 
+
+.imagePlaceholder {
+  position: relative;
+}
+
+.favouriteControl {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+}
+
+
 .placeholderBrand {
   font-size: 19px;
   font-weight: 800;
