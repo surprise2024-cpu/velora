@@ -96,6 +96,7 @@ model Room {
   @@index([roomTypeId])
 }
 
+
 model Booking {
   id         String        @id @default(uuid()) @db.Uuid
   checkIn    DateTime      @db.Date
@@ -104,13 +105,24 @@ model Booking {
   status     BookingStatus @default(PENDING)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
-  userId     String?       @db.Uuid
 
-  user User? @relation(fields: [userId], references: [id])
+  // Existing registered customer relationship
+  userId String? @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id])
 
+  // Guest checkout contact information
+  guestName  String? @db.VarChar(120)
+  guestEmail String? @db.VarChar(254)
+  guestPhone String? @db.VarChar(30)
+
+  // SHA-256 hash of a cryptographically random guest access token
+  guestAccessTokenHash String? @unique @db.VarChar(64)
+
+  // Existing relationships
   bookingRooms BookingRoom[]
   payments     Payment[]
 }
+
 
 enum BookingStatus {
   PENDING
