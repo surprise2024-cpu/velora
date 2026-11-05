@@ -20,6 +20,9 @@ import AdminRoomTypesPage from "./pages/admin/AdminRoomTypesPage";
 import AdminRoomsPage from "./pages/admin/AdminRoomsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
 
+import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
+
+
 export default function App() {
   return (
     <Routes>
@@ -58,6 +61,7 @@ export default function App() {
           <Route path="room-types" element={<AdminRoomTypesPage />} />
           <Route path="rooms" element={<AdminRoomsPage />} />
           <Route path="bookings" element={<AdminBookingsPage />} />
+          <Route path="payments" element={<AdminPaymentsPage />} />
         </Route>
       </Route>
 
