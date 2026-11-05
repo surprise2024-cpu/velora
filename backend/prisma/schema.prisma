@@ -45,9 +45,10 @@ model Branch {
   policies   String[] @default([])
   starRating Int?
 
-  brand     HotelBrand @relation(fields: [brandId], references: [id])
-  roomTypes RoomType[]
-  rooms     Room[]
+  brand      HotelBrand  @relation(fields: [brandId], references: [id])
+  roomTypes  RoomType[]
+  rooms      Room[]
+  favourites Favourite[]
 
   @@unique([brandId, name])
   @@index([city])
@@ -108,7 +109,7 @@ model Booking {
   user User? @relation(fields: [userId], references: [id])
 
   bookingRooms BookingRoom[]
-  payments Payment[]
+  payments     Payment[]
 }
 
 enum BookingStatus {
@@ -127,7 +128,8 @@ model User {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  bookings Booking[]
+  bookings   Booking[]
+  favourites Favourite[]
 
   @@unique([provider, providerId])
 }
@@ -151,19 +153,18 @@ model BookingRoom {
   @@index([roomId])
 }
 
-
 model Payment {
-  id               String        @id @default(uuid()) @db.Uuid
-  bookingId        String        @db.Uuid
-  provider         String        @default("PAYSTACK")
-  reference        String        @unique
-  amount           Decimal       @db.Decimal(12, 2)
-  currency         String        @default("ZAR")
-  status           PaymentStatus @default(PENDING)
+  id                    String        @id @default(uuid()) @db.Uuid
+  bookingId             String        @db.Uuid
+  provider              String        @default("PAYSTACK")
+  reference             String        @unique
+  amount                Decimal       @db.Decimal(12, 2)
+  currency              String        @default("ZAR")
+  status                PaymentStatus @default(PENDING)
   providerTransactionId String?
-  paidAt           DateTime?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
   booking Booking @relation(fields: [bookingId], references: [id])
 
@@ -176,4 +177,17 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+model Favourite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  branchId  String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, branchId])
+  @@index([branchId])
 }
