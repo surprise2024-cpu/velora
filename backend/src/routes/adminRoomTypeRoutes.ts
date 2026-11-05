@@ -72,11 +72,17 @@ const createRoomTypeSchema = z.object({
   amenities: z.array(z.string().trim().min(1)).default([]),
 });
 
+
 router.post(
   "/branches/:branchId/room-types",
   async (req, res, next) => {
-    const branchId = z.uuid().safeParse(req.params.branchId);
-    const parsed = createRoomTypeSchema.safeParse(req.body);
+    const branchId = z.uuid().safeParse(
+      req.params.branchId
+    );
+
+    const parsed = createRoomTypeSchema.safeParse(
+      req.body
+    );
 
     if (!branchId.success || !parsed.success) {
       return res.status(400).json({
@@ -85,52 +91,84 @@ router.post(
       });
     }
 
-    try {
-      const branch = await prisma.branch.findFirst({
-        where: {
-          id: branchId.data,
-          isActive: true,
-        },
-        select: { id: true },
-      });
+    const data = parsed.data;
 
-      if (!branch) {
+    try {
+      const result = await prisma.$transaction(
+        async (tx) => {
+          // Coordinate with booking creation,
+          // branch activation/deactivation,
+          // and physical room management.
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(${branchId.data}::text, 0)
+            )
+          `;
+
+          // Check branch state AFTER acquiring the lock.
+          const branch = await tx.branch.findUnique({
+            where: {
+              id: branchId.data,
+            },
+            select: {
+              id: true,
+              isActive: true,
+            },
+          });
+
+          if (!branch || !branch.isActive) {
+            return {
+              outcome: "BRANCH_UNAVAILABLE" as const,
+            };
+          }
+
+          const roomType = await tx.roomType.create({
+            data: {
+              branchId: branch.id,
+              name: data.name,
+              maxGuests: data.maxGuests,
+              basePrice: data.basePrice,
+              currency: data.currency.toUpperCase(),
+              images: data.images,
+              amenities: data.amenities,
+              ...(data.description !== undefined && {
+                description: data.description,
+              }),
+            },
+          });
+
+          return {
+            outcome: "CREATED" as const,
+            roomType,
+          };
+        },
+        {
+          timeout: 15000,
+        }
+      );
+
+      if (result.outcome === "BRANCH_UNAVAILABLE") {
         return res.status(404).json({
           success: false,
           message: "Active accommodation not found",
         });
       }
 
-      const data = parsed.data;
-
-      const roomType = await prisma.roomType.create({
-        data: {
-          branchId: branchId.data,
-          name: data.name,
-          maxGuests: data.maxGuests,
-          basePrice: data.basePrice,
-          currency: data.currency.toUpperCase(),
-          images: data.images,
-          amenities: data.amenities,
-          ...(data.description !== undefined && {
-            description: data.description,
-          }),
-        },
-      });
-
       return res.status(201).json({
         success: true,
         message: "Room type created successfully",
-        data: roomType,
+        data: result.roomType,
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error instanceof
+          Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
         return res.status(409).json({
           success: false,
-          message: "Room type already exists at this accommodation",
+          message:
+            "Room type already exists at this accommodation",
         });
       }
 
@@ -138,7 +176,6 @@ router.post(
     }
   }
 );
-
 
 const updateRoomTypeSchema = createRoomTypeSchema
   .partial()
