@@ -74,10 +74,8 @@ router.get("/bookings", requireAdmin, async (_req: Request, res: Response) => {
 });
 
 
-router.patch(
-  "/bookings/:id/approve",
-  requireAdmin,
-  async (req: Request, res: Response) => {
+router.patch("/bookings/:id/approve", requireAdmin, async (req: Request, res: Response) => {
+
     const bookingId = z.uuid().safeParse(req.params.id);
 
     if (!bookingId.success) {
@@ -98,6 +96,60 @@ router.patch(
               hashtextextended(${bookingId.data}, 1)
             )
           `;
+            
+          const pendingBooking = await tx.booking.findUnique({
+            where: { id: bookingId.data },
+            select: {
+              status: true,
+              bookingRooms: {
+                select: {
+                  room: {
+                    select: {
+                      branchId: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (!pendingBooking || pendingBooking.status !== "PENDING") {
+            throw new Error("BOOKING_NOT_APPROVABLE");
+          }
+
+          const branchIds = [
+            ...new Set(
+              pendingBooking.bookingRooms.map(
+                (item) => item.room.branchId
+              )
+            ),
+          ].sort();
+
+          if (branchIds.length !== 1) {
+            throw new Error("INVALID_BOOKING_BRANCH");
+          }
+
+          const branchId = branchIds[0]!;
+
+          // Coordinate with branch activation/deactivation.
+          await tx.$executeRaw`
+            SELECT pg_advisory_xact_lock(
+              hashtextextended(${branchId}::text, 0)
+            )
+          `;
+
+          const activeBranch = await tx.branch.findFirst({
+            where: {
+              id: branchId,
+              isActive: true,
+            },
+            select: { id: true },
+          });
+
+          if (!activeBranch) {
+            throw new Error("BOOKING_BRANCH_INACTIVE");
+          }
+
 
           const activePayment = await tx.payment.findFirst({
             where: {
@@ -171,6 +223,29 @@ router.patch(
           message: "Booking not found or is not pending",
         });
       }
+
+            
+      if (
+        error instanceof Error &&
+        error.message === "BOOKING_BRANCH_INACTIVE"
+      ) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "Cannot approve a booking for an inactive hotel branch",
+        });
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === "INVALID_BOOKING_BRANCH"
+      ) {
+        return res.status(409).json({
+          success: false,
+          message: "Booking has invalid branch assignments",
+        });
+      }
+
 
       console.error("Failed to approve booking:", error);
 
