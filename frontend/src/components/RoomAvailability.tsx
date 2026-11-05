@@ -4,6 +4,7 @@ import { apiRequest } from "../lib/api";
 import styles from "./RoomAvailability.module.css";
 import BookingConfirmation from "./BookingConfirmation";
 import type { BookingSelection } from "./BookingConfirmation";
+import { loadGuestBookingRecovery } from "../lib/bookingRecovery";
 
 type RoomAvailabilityItem = {
   roomTypeId: string;
@@ -69,8 +70,19 @@ export default function RoomAvailability({
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [selection, setSelection] = useState<BookingSelection | null>(null);
+  const [selection, setSelection] =
+  useState<BookingSelection | null>(() => {
+    const recovery = loadGuestBookingRecovery();
 
+    if (
+      recovery &&
+      recovery.selection.branchId === branchId
+    ) {
+      return recovery.selection;
+    }
+
+    return null;
+  });
   const requestId = useRef(0);
 
   const nights = calculateNights(checkIn, checkOut);
