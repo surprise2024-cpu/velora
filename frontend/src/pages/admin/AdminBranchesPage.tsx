@@ -28,11 +28,16 @@ export default function AdminBranchesPage() {
   const [reloadKey, setReloadKey] = useState(0);
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingBranch, setEditingBranch] =
-    useState<AdminBranch | null>(null);
+  const [editingBranch, setEditingBranch] = useState<AdminBranch | null>(null);
 
-  const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
-  const [branchToDeactivate, setBranchToDeactivate] = useState<AdminBranch | null>(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{
+    branch: AdminBranch;
+    action: "activate" | "deactivate";
+  } | null>(null);
+
+const [changingStatusId, setChangingStatusId] = useState<string | null>(null);
+
+
   useEffect(() => {
     let active = true;
 
@@ -117,34 +122,42 @@ export default function AdminBranchesPage() {
 
   
 
-async function handleDeactivate() {
-  if (!branchToDeactivate || deactivatingId) return;
 
-  const branch = branchToDeactivate;
+async function handleBranchStatusChange() {
+  if (!pendingStatusChange || changingStatusId) return;
 
-  setDeactivatingId(branch.id);
+  const { branch, action } = pendingStatusChange;
+
+  setChangingStatusId(branch.id);
   setError("");
   setSuccess("");
 
   try {
+    const endpoint =
+      action === "activate"
+        ? `/admin/branches/${branch.id}/activate`
+        : `/admin/branches/${branch.id}`;
+
     const response = await apiRequest<{
       success: boolean;
       message?: string;
-    }>(`/admin/branches/${branch.id}`, {
-      method: "DELETE",
+    }>(endpoint, {
+      method: action === "activate" ? "PATCH" : "DELETE",
     });
 
     if (!response.success) {
       throw new Error(
-        response.message || "Unable to deactivate branch."
+        response.message ||
+          `Unable to ${action} branch.`
       );
     }
 
     setSuccess(
-      response.message || "Branch deactivated successfully."
+      response.message ||
+        `Branch ${action}d successfully.`
     );
 
-    setBranchToDeactivate(null);
+    setPendingStatusChange(null);
     setEditingBranch(null);
     setShowAddForm(false);
     setReloadKey((value) => value + 1);
@@ -152,12 +165,12 @@ async function handleDeactivate() {
     setError(
       err instanceof Error
         ? err.message
-        : "Unable to deactivate branch."
+        : `Unable to ${action} branch.`
     );
 
-    setBranchToDeactivate(null);
+    setPendingStatusChange(null);
   } finally {
-    setDeactivatingId(null);
+    setChangingStatusId(null);
   }
 }
 
@@ -289,31 +302,54 @@ async function handleDeactivate() {
                               : "Inactive"}
                           </span>
                         </td>
-
+                        
                         <td>
                           <div className={styles.actionGroup}>
                             <button
                               type="button"
                               className={styles.editButton}
+                              disabled={changingStatusId !== null}
                               onClick={() => openEdit(branch)}
                             >
                               Edit
                             </button>
 
-                            {branch.isActive && (
+                            {branch.isActive ? (
                               <button
                                 type="button"
                                 className={styles.deactivateButton}
-                                disabled={deactivatingId !== null}
-                                onClick={() => setBranchToDeactivate(branch)}
+                                disabled={changingStatusId !== null}
+                                onClick={() =>
+                                  setPendingStatusChange({
+                                    branch,
+                                    action: "deactivate",
+                                  })
+                                }
                               >
-                                {deactivatingId === branch.id
+                                {changingStatusId === branch.id
                                   ? "Deactivating..."
                                   : "Deactivate"}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className={styles.activateButton}
+                                disabled={changingStatusId !== null}
+                                onClick={() =>
+                                  setPendingStatusChange({
+                                    branch,
+                                    action: "activate",
+                                  })
+                                }
+                              >
+                                {changingStatusId === branch.id
+                                  ? "Activating..."
+                                  : "Activate"}
                               </button>
                             )}
                           </div>
                         </td>
+
                       </tr>
                     ))}
                   </tbody>
@@ -324,21 +360,39 @@ async function handleDeactivate() {
         </>
       )}
 
-      {branchToDeactivate && (
+      {pendingStatusChange && (
         <AdminConfirmModal
-          title="Deactivate Branch?"
-          itemName={branchToDeactivate.name}
-          description="Are you sure you want to deactivate this hotel branch? It will no longer be available as an active location."
-          confirmLabel="Deactivate Branch"
-          loading={deactivatingId !== null}
-          onConfirm={() => void handleDeactivate()}
+          title={
+            pendingStatusChange.action === "activate"
+              ? "Activate Branch?"
+              : "Deactivate Branch?"
+          }
+          itemName={pendingStatusChange.branch.name}
+          description={
+            pendingStatusChange.action === "activate"
+              ? "This hotel branch will become active again."
+              : "This hotel branch will become inactive and unavailable as an active location."
+          }
+          notice={
+            pendingStatusChange.action === "activate"
+              ? "Previously disabled rooms and room types will remain inactive."
+              : "Historical records will be preserved. Branches with confirmed reservations that have not checked out cannot be deactivated."
+          }
+          confirmLabel={
+            pendingStatusChange.action === "activate"
+              ? "Activate Branch"
+              : "Deactivate Branch"
+          }
+          loading={changingStatusId !== null}
+          onConfirm={() => void handleBranchStatusChange()}
           onCancel={() => {
-            if (!deactivatingId) {
-              setBranchToDeactivate(null);
+            if (!changingStatusId) {
+              setPendingStatusChange(null);
             }
           }}
         />
       )}
+
 
     </main>
   );
