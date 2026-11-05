@@ -17,6 +17,7 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminBranchesPage from "./pages/admin/AdminBranchesPage";
 import AdminRoomTypesPage from "./pages/admin/AdminRoomTypesPage";
+import AdminRoomsPage from "./pages/admin/AdminRoomsPage";
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
           <Route index element={<AdminDashboardPage />} />
           <Route path="branches" element={<AdminBranchesPage />} />
           <Route path="room-types" element={<AdminRoomTypesPage />} />
+          <Route path="rooms" element={<AdminRoomsPage />} />
         </Route>
       </Route>
 
