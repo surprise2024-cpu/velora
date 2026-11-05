@@ -18,6 +18,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminBranchesPage from "./pages/admin/AdminBranchesPage";
 import AdminRoomTypesPage from "./pages/admin/AdminRoomTypesPage";
 import AdminRoomsPage from "./pages/admin/AdminRoomsPage";
+import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
 
 export default function App() {
   return (
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="branches" element={<AdminBranchesPage />} />
           <Route path="room-types" element={<AdminRoomTypesPage />} />
           <Route path="rooms" element={<AdminRoomsPage />} />
+          <Route path="bookings" element={<AdminBookingsPage />} />
         </Route>
       </Route>
 
