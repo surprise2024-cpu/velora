@@ -5,6 +5,7 @@ import styles from "./AdminRoomsPage.module.css";
 import AddRoomForm, {
   type EditableRoom,
 } from "../../components/admin/AddRoomForm";
+import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
 
 type AdminRoom = {
   id: string;
@@ -45,6 +46,14 @@ export default function AdminRoomsPage() {
 
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingRoom, setEditingRoom] = useState<EditableRoom | null>(null);
+
+    const [pendingStatusChange, setPendingStatusChange] =
+  useState<{
+    room: AdminRoom;
+    action: "activate" | "deactivate";
+  } | null>(null);
+
+const [statusSaving, setStatusSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -169,6 +178,46 @@ export default function AdminRoomsPage() {
     closeRoomForm();
     setReloadKey((value) => value + 1);
     }
+
+    
+async function handleRoomStatusChange() {
+  if (!pendingStatusChange || statusSaving) {
+    return;
+  }
+
+  const { room, action } = pendingStatusChange;
+
+  setStatusSaving(true);
+  setError("");
+
+  try {
+    if (action === "activate") {
+      await apiRequest(
+        `/admin/rooms/${room.id}/activate`,
+        {
+          method: "PATCH",
+        }
+      );
+    } else {
+      await apiRequest(`/admin/rooms/${room.id}`, {
+        method: "DELETE",
+      });
+    }
+
+    setPendingStatusChange(null);
+    setReloadKey((value) => value + 1);
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : `Unable to ${action} room.`
+    );
+    setPendingStatusChange(null);
+  } finally {
+    setStatusSaving(false);
+  }
+}
+
 
   return (
     <main className={styles.page}>
@@ -341,7 +390,7 @@ export default function AdminRoomsPage() {
                                 >
                                 Edit
                             </button>
-
+                            
                             <button
                               type="button"
                               className={
@@ -349,13 +398,24 @@ export default function AdminRoomsPage() {
                                   ? styles.deactivateButton
                                   : styles.activateButton
                               }
-                              disabled
-                              title="Reservation-safe status controls are coming next"
+                              onClick={() =>
+                                setPendingStatusChange({
+                                  room,
+                                  action: room.isActive
+                                    ? "deactivate"
+                                    : "activate",
+                                })
+                              }
+                              disabled={
+                                statusSaving ||
+                                (!room.isActive &&
+                                  (!room.branch.isActive ||
+                                    !room.roomType.isActive))
+                              }
                             >
-                              {room.isActive
-                                ? "Deactivate"
-                                : "Activate"}
+                              {room.isActive ? "Deactivate" : "Activate"}
                             </button>
+
                           </div>
                         </td>
                       </tr>
@@ -376,6 +436,43 @@ export default function AdminRoomsPage() {
             onSaved={handleRoomSaved}
         />
         )}
+
+                
+        {pendingStatusChange && (
+          <AdminConfirmModal
+            title={
+              pendingStatusChange.action === "activate"
+                ? "Activate Room"
+                : "Deactivate Room"
+            }
+            itemName={
+              `Room ${pendingStatusChange.room.roomNumber}`
+            }
+            description={
+              pendingStatusChange.action === "activate"
+                ? "This room will become active and may be available for future bookings."
+                : "This room will become inactive and unavailable for new bookings. Rooms with protected future reservations cannot be deactivated."
+            }
+            notice={
+              pendingStatusChange.action === "deactivate"
+                ? "Existing protected future reservations will be checked before this action is allowed."
+                : undefined
+            }
+            confirmLabel={
+              pendingStatusChange.action === "activate"
+                ? "Activate Room"
+                : "Deactivate Room"
+            }
+            loading={statusSaving}
+            onConfirm={() => void handleRoomStatusChange()}
+            onCancel={() => {
+              if (!statusSaving) {
+                setPendingStatusChange(null);
+              }
+            }}
+          />
+        )}
+
     </main>
   );
 }
