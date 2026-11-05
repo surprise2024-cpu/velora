@@ -168,12 +168,16 @@ export default function BookingConfirmation({
         </p>
       </div>
 
+      
       {!user && (
         <p className={styles.notice}>
-          You must sign in before creating a reservation.
-          <Link to="/login"> Sign in with Google</Link>
+          You're exploring Velora as a guest. Your room selection
+          is ready, but you'll need to sign in with Google to
+          complete your reservation.{" "}
+          <Link to="/login">Continue to Sign In</Link>
         </p>
       )}
+
 
       {error && (
         <p className={styles.error} role="alert">
