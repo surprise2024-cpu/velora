@@ -2,7 +2,6 @@
 import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import ProtectedRoute from "./components/ProtectedRoutes";
-import LogoutButton from "./components/LogoutButton";
 import HotelDetailsPage from "./pages/HotelDetailsPage";
 import PaymentReturnPage from "./pages/PaymentReturnPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -12,6 +11,7 @@ import MyBookingsPage from "./pages/MyBookingsPage";
 import FavouritesPage from "./pages/FavouritesPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import LoginPage from "./pages/LoginPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 
 export default function App() {
   return (
@@ -50,12 +50,7 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
         <Route
           path="/admin"
-          element={
-            <main>
-              <h1>Velora Admin Dashboard</h1>
-              <LogoutButton />
-            </main>
-          }
+          element={<AdminDashboardPage />}
         />
       </Route>
 
