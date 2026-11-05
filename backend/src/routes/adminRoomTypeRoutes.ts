@@ -250,11 +250,12 @@ router.delete("/room-types/:id", async (req, res, next) => {
       }
 
       // Coordinate with booking creation and branch operations.
-      await tx.$queryRaw`
+      await tx.$executeRaw`
         SELECT pg_advisory_xact_lock(
           hashtextextended(${existing.branchId}::text, 0)
         )
       `;
+
 
       const roomType = await tx.roomType.findUnique({
         where: { id: existing.id },
@@ -386,11 +387,12 @@ router.patch("/room-types/:id/activate", async (req, res, next) => {
         }
 
         // Coordinate with branch and booking operations.
-        await tx.$queryRaw`
+        await tx.$executeRaw`
           SELECT pg_advisory_xact_lock(
             hashtextextended(${existing.branchId}::text, 0)
           )
         `;
+
 
         // Recheck state after acquiring the lock.
         const roomType = await tx.roomType.findUnique({
