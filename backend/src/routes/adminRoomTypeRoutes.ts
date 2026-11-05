@@ -184,6 +184,7 @@ const updateRoomTypeSchema = createRoomTypeSchema
     "At least one field must be provided"
   );
 
+
 router.patch("/room-types/:id", async (req, res, next) => {
   const parsedId = z.uuid().safeParse(req.params.id);
   const parsed = updateRoomTypeSchema.safeParse(req.body);
@@ -196,54 +197,105 @@ router.patch("/room-types/:id", async (req, res, next) => {
   }
 
   try {
+    // Determine the branch before acquiring its lock.
     const existing = await prisma.roomType.findUnique({
       where: { id: parsedId.data },
       select: {
         id: true,
-        branch: {
-          select: { isActive: true },
-        },
+        branchId: true,
       },
     });
 
-    if (!existing || !existing.branch.isActive) {
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        message: "Room type not found",
+      });
+    }
+
+    const result = await prisma.$transaction(
+      async (tx) => {
+        // Coordinate with branch management, bookings,
+        // room creation, and room-type status changes.
+        await tx.$executeRaw`
+          SELECT pg_advisory_xact_lock(
+            hashtextextended(${existing.branchId}::text, 0)
+          )
+        `;
+
+        // Recheck the room type and branch after locking.
+        const current = await tx.roomType.findUnique({
+          where: { id: existing.id },
+          select: {
+            id: true,
+            branchId: true,
+            isActive: true,
+            branch: {
+              select: {
+                isActive: true,
+              },
+            },
+          },
+        });
+
+        if (
+          !current ||
+          current.branchId !== existing.branchId ||
+          !current.branch.isActive
+        ) {
+          return {
+            outcome: "UNAVAILABLE" as const,
+          };
+        }
+
+        const data = parsed.data;
+
+        const roomType = await tx.roomType.update({
+          where: { id: current.id },
+          data: {
+            ...(data.name !== undefined && {
+              name: data.name,
+            }),
+            ...(data.description !== undefined && {
+              description: data.description,
+            }),
+            ...(data.maxGuests !== undefined && {
+              maxGuests: data.maxGuests,
+            }),
+            ...(data.basePrice !== undefined && {
+              basePrice: data.basePrice,
+            }),
+            ...(data.currency !== undefined && {
+              currency: data.currency.toUpperCase(),
+            }),
+            ...(data.images !== undefined && {
+              images: data.images,
+            }),
+            ...(data.amenities !== undefined && {
+              amenities: data.amenities,
+            }),
+          },
+        });
+
+        return {
+          outcome: "UPDATED" as const,
+          roomType,
+        };
+      },
+      { timeout: 15000 }
+    );
+
+    if (result.outcome === "UNAVAILABLE") {
       return res.status(404).json({
         success: false,
         message: "Active room type not found",
       });
     }
 
-    const data = parsed.data;
-
-    const roomType = await prisma.roomType.update({
-      where: { id: parsedId.data },
-      data: {
-        ...(data.name !== undefined && { name: data.name }),
-        ...(data.description !== undefined && {
-          description: data.description,
-        }),
-        ...(data.maxGuests !== undefined && {
-          maxGuests: data.maxGuests,
-        }),
-        ...(data.basePrice !== undefined && {
-          basePrice: data.basePrice,
-        }),
-        ...(data.currency !== undefined && {
-          currency: data.currency.toUpperCase(),
-        }),
-        ...(data.images !== undefined && {
-          images: data.images,
-        }),
-        ...(data.amenities !== undefined && {
-          amenities: data.amenities,
-        }),
-      },
-    });
-
     return res.status(200).json({
       success: true,
       message: "Room type updated successfully",
-      data: roomType,
+      data: result.roomType,
     });
   } catch (error) {
     if (
@@ -252,7 +304,8 @@ router.patch("/room-types/:id", async (req, res, next) => {
     ) {
       return res.status(409).json({
         success: false,
-        message: "Room type name already exists at this accommodation",
+        message:
+          "Room type name already exists at this accommodation",
       });
     }
 
