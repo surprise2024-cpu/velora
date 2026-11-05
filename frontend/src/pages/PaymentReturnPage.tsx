@@ -4,6 +4,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { apiRequest } from "../lib/api";
 import Navbar from "../components/Navbar";
 import styles from "./PaymentReturnPage.module.css";
+import {
+  clearGuestBookingRecovery,
+} from "../lib/bookingRecovery";
+
 
 type VerifyResponse = {
   success: boolean;
@@ -19,6 +23,13 @@ type VerifyResponse = {
 };
 
 type PaymentResult = VerifyResponse["data"];
+
+type PendingPayment = {
+  bookingId?: string;
+  reference?: string;
+  checkoutType?: "customer" | "guest";
+  guestToken?: string;
+};
 
 export default function PaymentReturnPage() {
   const [params] = useSearchParams();
@@ -40,23 +51,22 @@ export default function PaymentReturnPage() {
     verificationStarted.current = true;
 
     async function verifyPayment() {
-      let reference = referenceFromUrl;
-
       const saved = sessionStorage.getItem(
         "velora.pendingPayment"
       );
 
-      if (!reference && saved) {
-        try {
-          const pending = JSON.parse(saved) as {
-            reference?: string;
-          };
+      let pending: PendingPayment | null = null;
 
-          reference = pending.reference ?? null;
+      if (saved) {
+        try {
+          pending = JSON.parse(saved) as PendingPayment;
         } catch {
-          reference = null;
+          pending = null;
         }
       }
+
+      const reference =
+        referenceFromUrl ?? pending?.reference;
 
       if (!reference) {
         setError("No payment reference was found.");
@@ -64,10 +74,47 @@ export default function PaymentReturnPage() {
         return;
       }
 
+      // Do not apply stored credentials to a different
+      // payment reference supplied through the URL.
+      if (
+        pending?.reference &&
+        pending.reference !== reference
+      ) {
+        setError(
+          "This payment reference does not match the pending checkout."
+        );
+        setStatus("failed");
+        return;
+      }
+
+      const isGuest = pending?.checkoutType === "guest";
+
+      if (
+        isGuest &&
+        !/^[a-f0-9]{64}$/.test(pending?.guestToken ?? "")
+      ) {
+        setError(
+          "Guest payment access is unavailable. Please do not pay again."
+        );
+        setStatus("pending");
+        return;
+      }
+
+      const endpoint = isGuest
+        ? `/payments/guest/${encodeURIComponent(reference)}/verify`
+        : `/payments/${encodeURIComponent(reference)}/verify`;
+
       try {
         const response = await apiRequest<VerifyResponse>(
-          `/payments/${encodeURIComponent(reference)}/verify`,
-          { method: "POST" }
+          endpoint,
+          {
+            method: "POST",
+            headers: isGuest
+              ? {
+                  Authorization: `Bearer ${pending!.guestToken}`,
+                }
+              : undefined,
+          }
         );
 
         if (!response.success || !response.data) {
@@ -81,7 +128,10 @@ export default function PaymentReturnPage() {
           response.data.recordedStatus === "COMPLETED" &&
           !response.data.requiresReview
         ) {
-          sessionStorage.removeItem("velora.pendingPayment");
+          sessionStorage.removeItem(
+            "velora.pendingPayment"
+          );
+          clearGuestBookingRecovery();
           setStatus("success");
         } else if (
           response.data.requiresReview ||
@@ -89,7 +139,6 @@ export default function PaymentReturnPage() {
         ) {
           setStatus("pending");
         } else {
-          sessionStorage.removeItem("velora.pendingPayment");
           setStatus("failed");
         }
       } catch (err) {
@@ -98,7 +147,7 @@ export default function PaymentReturnPage() {
             ? err.message
             : "Unable to verify payment."
         );
-        setStatus("failed");
+        setStatus("pending");
       }
     }
 
@@ -133,11 +182,11 @@ export default function PaymentReturnPage() {
 
           {status === "pending" && (
             <>
-              <h1>Payment Not Yet Confirmed</h1>
+              <h1>Payment Verification Pending</h1>
               <p>
-                Your payment is pending or requires further
-                review. Please do not start another payment
-                until its status is resolved.
+                We could not confirm the final payment result
+                on this page. Please do not start another
+                payment until the status is resolved.
               </p>
             </>
           )}
