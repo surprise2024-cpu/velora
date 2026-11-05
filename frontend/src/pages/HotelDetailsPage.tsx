@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import type { HotelBranch } from "../components/HotelCard";
 import styles from "./HotelDetailsPage.module.css";
 import RoomAvailability from "../components/RoomAvailability";
+import FavouriteButton from "../components/FavouriteButton";
 
 type BranchResponse = {
   success: boolean;
@@ -90,7 +91,13 @@ export default function HotelDetailsPage() {
                 {branch.country}
               </p>
 
-              <h1>{branch.name}</h1>
+              
+              <div className={styles.titleRow}>
+                <h1>{branch.name}</h1>
+
+                <FavouriteButton branchId={branch.id} />
+              </div>
+
 
               <div className={styles.metadata}>
                 <span>{branch.address}</span>
