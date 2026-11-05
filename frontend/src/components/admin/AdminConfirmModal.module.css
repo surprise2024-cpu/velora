@@ -1,0 +1,142 @@
+
+.dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  margin: auto;
+  border: 1px solid #e6e8eb;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #102c48;
+  box-shadow: 0 24px 80px rgba(0, 15, 32, 0.25);
+  overflow-y: auto;
+}
+
+.dialog::backdrop {
+  background: rgba(5, 17, 32, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.content {
+  padding: 26px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.warningIcon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #fff3df;
+  color: #a56b20;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  color: #b18a4a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.heading h2 {
+  margin: 5px 0 0;
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.itemName {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 750;
+}
+
+.description {
+  margin: 0 0 18px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.notice {
+  padding: 13px 15px;
+  border-left: 3px solid #c49a56;
+  border-radius: 5px;
+  background: #faf7f1;
+  color: #70552d;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.actions button {
+  min-height: 40px;
+  padding: 10px 16px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid #d9dfe5;
+  background: #ffffff;
+  color: #102c48;
+}
+
+.confirmButton {
+  border: 1px solid #102c48;
+  background: #102c48;
+  color: #ffffff;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background: #24435f;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #f4f6f8;
+}
+
+.actions button:focus-visible {
+  outline: 2px solid #c49a56;
+  outline-offset: 3px;
+}
+
+.actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 20px;
+  }
+
+  .heading h2 {
+    font-size: 18px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}
