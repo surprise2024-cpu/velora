@@ -1,0 +1,113 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: rgba(9, 24, 40, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: min(90vh, 900px);
+  max-height: min(90dvh, 900px);
+  overflow: hidden;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #102c48;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.medium {
+  max-width: 720px;
+}
+
+.large {
+  max-width: 1050px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 26px;
+  border-bottom: 1px solid #e8edf2;
+  flex-shrink: 0;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 750;
+}
+
+.header p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.closeButton {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #102c48;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: #e8edf2;
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid #d7ad62;
+  outline-offset: 2px;
+}
+
+.closeButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 26px;
+}
+
+@media (max-width: 600px) {
+  .backdrop {
+    padding: 12px;
+  }
+
+  .modal {
+    max-height: 94vh;
+    max-height: 94dvh;
+  }
+
+  .header {
+    padding: 18px;
+  }
+
+  .header h2 {
+    font-size: 18px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+}
