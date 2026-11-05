@@ -12,6 +12,8 @@ import FavouritesPage from "./pages/FavouritesPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminBranchesPage from "./pages/admin/AdminBranchesPage";
 
 export default function App() {
   return (
@@ -48,10 +50,10 @@ export default function App() {
 
 
       <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
-        <Route
-          path="/admin"
-          element={<AdminDashboardPage />}
-        />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="branches" element={<AdminBranchesPage />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<h1>404 — Page Not Found</h1>} />
