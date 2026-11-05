@@ -1,5 +1,6 @@
 
 import { Routes, Route } from "react-router-dom";
+
 import HomePage from "./pages/HomePage";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import HotelDetailsPage from "./pages/HotelDetailsPage";
@@ -11,9 +12,11 @@ import MyBookingsPage from "./pages/MyBookingsPage";
 import FavouritesPage from "./pages/FavouritesPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import LoginPage from "./pages/LoginPage";
+
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminBranchesPage from "./pages/admin/AdminBranchesPage";
+import AdminRoomTypesPage from "./pages/admin/AdminRoomTypesPage";
 
 export default function App() {
   return (
@@ -25,7 +28,6 @@ export default function App() {
         element={<HotelDetailsPage />}
       />
 
-      
       <Route
         path="/payment/callback"
         element={<PaymentReturnPage />}
@@ -37,7 +39,7 @@ export default function App() {
       />
 
       <Route path="/login" element={<LoginPage />} />
-      
+
       <Route element={<ProtectedRoute allowedRole="CUSTOMER" />}>
         <Route path="/account" element={<AccountLayout />}>
           <Route index element={<ProfilePage />} />
@@ -47,16 +49,18 @@ export default function App() {
         </Route>
       </Route>
 
-
-
       <Route element={<ProtectedRoute allowedRole="ADMIN" />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboardPage />} />
           <Route path="branches" element={<AdminBranchesPage />} />
+          <Route path="room-types" element={<AdminRoomTypesPage />} />
         </Route>
       </Route>
 
-      <Route path="*" element={<h1>404 — Page Not Found</h1>} />
+      <Route
+        path="*"
+        element={<h1>404 — Page Not Found</h1>}
+      />
     </Routes>
   );
 }
