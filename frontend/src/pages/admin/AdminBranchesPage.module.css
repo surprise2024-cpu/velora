@@ -1,0 +1,164 @@
+
+.page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  color: #102c48;
+}
+
+.pageHeader {
+  margin-bottom: 20px;
+}
+
+.pageHeader h1 {
+  margin: 0 0 5px;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.pageHeader p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.statistics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 9px;
+}
+
+.statCard span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.statCard strong {
+  font-size: 29px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.branchesSection {
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid #e8e8e8;
+  border-radius: 9px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sectionHeader span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.table thead {
+  background: #f1f4f6;
+}
+
+.table th {
+  padding: 11px 12px;
+  color: #64748b;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #edf0f2;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.branchName {
+  font-weight: 650;
+}
+
+.status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.active {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.inactive {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.message {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.error {
+  padding: 16px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+}
+
+.error button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .statistics {
+    grid-template-columns: 1fr;
+  }
+
+  .pageHeader h1 {
+    font-size: 22px;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+}
