@@ -9,6 +9,48 @@ const router = Router();
 
 router.use(requireAdmin);
 
+
+router.get("/branches", async (_req, res, next) => {
+  try {
+    const branches = await prisma.branch.findMany({
+      select: {
+        id: true,
+        brandId: true,
+        name: true,
+        description: true,
+        address: true,
+        city: true,
+        province: true,
+        country: true,
+        starRating: true,
+        isActive: true,
+        images: true,
+        amenities: true,
+        policies: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            rooms: true,
+            roomTypes: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: branches,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 const createBranchSchema = z.object({
   brandId: z.uuid(),
   name: z.string().trim().min(1).max(150),
