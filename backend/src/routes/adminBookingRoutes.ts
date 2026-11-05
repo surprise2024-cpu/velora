@@ -105,6 +105,7 @@ router.patch("/bookings/:id/approve", requireAdmin, async (req: Request, res: Re
                 select: {
                   room: {
                     select: {
+                      id: true,
                       branchId: true,
                     },
                   },
@@ -150,6 +151,35 @@ router.patch("/bookings/:id/approve", requireAdmin, async (req: Request, res: Re
             throw new Error("BOOKING_BRANCH_INACTIVE");
           }
 
+          if (pendingBooking.bookingRooms.length === 0) {
+            throw new Error("BOOKING_INVENTORY_UNAVAILABLE");
+          }
+
+          const allocatedRoomIds = pendingBooking.bookingRooms.map(
+            (item) => item.room.id
+          );
+
+          const activeAllocatedRooms = await tx.room.count({
+            where: {
+              id: {
+                in: allocatedRoomIds,
+              },
+              branchId,
+              isActive: true,
+              roomType: {
+                isActive: true,
+                branchId,
+              },
+            },
+          });
+
+          if (
+            activeAllocatedRooms !== allocatedRoomIds.length ||
+            new Set(allocatedRoomIds).size !==
+              allocatedRoomIds.length
+          ) {
+            throw new Error("BOOKING_INVENTORY_UNAVAILABLE");
+          }
 
           const activePayment = await tx.payment.findFirst({
             where: {
@@ -233,6 +263,17 @@ router.patch("/bookings/:id/approve", requireAdmin, async (req: Request, res: Re
           success: false,
           message:
             "Cannot approve a booking for an inactive hotel branch",
+        });
+      }
+
+      if (
+        error instanceof Error &&
+        error.message === "BOOKING_INVENTORY_UNAVAILABLE"
+      ) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "Cannot approve this booking because one or more allocated rooms or room types are inactive or unavailable",
         });
       }
 
