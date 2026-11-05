@@ -213,6 +213,7 @@ router.patch("/branches/:id", async (req, res, next) => {
 });
 
 
+
 router.delete("/branches/:id", async (req, res, next) => {
   const parsedId = z.uuid().safeParse(req.params.id);
 
@@ -223,42 +224,113 @@ router.delete("/branches/:id", async (req, res, next) => {
     });
   }
 
+  const branchId = parsedId.data;
+
   try {
-    const branch = await prisma.branch.findUnique({
-      where: { id: parsedId.data },
-      select: {
-        id: true,
-        isActive: true,
-      },
-    });
+    const result = await prisma.$transaction(async (tx) => {
+      // Serialize deactivation attempts for the same branch.
+      await tx.$executeRaw`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(${branchId}::text, 0)
+        )
+      `;
 
-    if (!branch) {
-      return res.status(404).json({
-        success: false,
-        message: "Accommodation not found",
+      const branch = await tx.branch.findUnique({
+        where: { id: branchId },
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+        },
       });
-    }
 
-    if (!branch.isActive) {
-      return res.status(409).json({
-        success: false,
-        message: "Accommodation is already inactive",
+      if (!branch) {
+        return { outcome: "NOT_FOUND" as const };
+      }
+
+      if (!branch.isActive) {
+        return { outcome: "ALREADY_INACTIVE" as const };
+      }
+
+      // PostgreSQL current date, avoiding timezone-dependent
+      // comparisons against JavaScript's current timestamp.
+      const dates = await tx.$queryRaw<{ today: Date }[]>`
+        SELECT CURRENT_DATE AS today
+      `;
+
+      const today = dates[0]?.today;
+
+      if (!today) {
+        throw new Error("Unable to determine database date.");
+      }
+
+      const protectedBookings = await tx.booking.count({
+        where: {
+          status: "CONFIRMED",
+          checkOut: {
+            gt: today,
+          },
+          bookingRooms: {
+            some: {
+              room: {
+                branchId,
+              },
+            },
+          },
+        },
       });
+
+      if (protectedBookings > 0) {
+        return {
+          outcome: "HAS_RESERVATIONS" as const,
+          count: protectedBookings,
+        };
+      }
+
+      await tx.branch.update({
+        where: { id: branchId },
+        data: { isActive: false },
+      });
+
+      return {
+        outcome: "DEACTIVATED" as const,
+        name: branch.name,
+      };
+    });
+
+    switch (result.outcome) {
+      case "NOT_FOUND":
+        return res.status(404).json({
+          success: false,
+          message: "Accommodation not found",
+        });
+
+      case "ALREADY_INACTIVE":
+        return res.status(409).json({
+          success: false,
+          message: "Accommodation is already inactive",
+        });
+
+      case "HAS_RESERVATIONS":
+        return res.status(409).json({
+          success: false,
+          message:
+            `Cannot deactivate this branch. ` +
+            `${result.count} confirmed reservation(s) ` +
+            `have not yet checked out.`,
+        });
+
+      case "DEACTIVATED":
+        return res.status(200).json({
+          success: true,
+          message: `${result.name} deactivated successfully`,
+        });
     }
-
-    await prisma.branch.update({
-      where: { id: parsedId.data },
-      data: { isActive: false },
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Accommodation deactivated successfully",
-    });
   } catch (error) {
     next(error);
   }
 });
+
 
 
 export default router;
