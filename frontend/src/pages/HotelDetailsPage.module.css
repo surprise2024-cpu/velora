@@ -171,6 +171,26 @@
   }
 }
 
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 12px 0;
+}
+
+.titleRow h1 {
+  margin: 0;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .titleRow {
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 500px) {
   .container {
     padding: 24px 18px 60px;
