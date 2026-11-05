@@ -17,6 +17,7 @@ import adminBookingRoutes from "./routes/adminBookingRoutes.js";
 import adminPaymentRoutes from "./routes/adminPaymentRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import favouriteRoutes from "./routes/favouriteRoutes.js";
+import adminImageRoutes from "./routes/adminImageRoutes.js";
 
 export const app = express();
 
@@ -76,6 +77,7 @@ app.use("/api/v1/admin", adminRoomRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
 app.use("/api/v1/admin", adminBookingRoutes);
 app.use("/api/v1/admin", adminPaymentRoutes);
+app.use("/api/v1/admin", adminImageRoutes);
 app.use("/api/v1/payments", paymentRoutes);
 app.use("/api/v1/favourites", favouriteRoutes);
 
