@@ -8,6 +8,7 @@ type Props = {
   itemName: string;
   confirmLabel: string;
   loading?: boolean;
+  notice?: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -20,6 +21,7 @@ export default function AdminConfirmModal({
   loading = false,
   onConfirm,
   onCancel,
+  notice,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -76,11 +78,11 @@ export default function AdminConfirmModal({
           {description}
         </p>
 
-        <div className={styles.notice}>
-          Historical records will be preserved. Branches with
-          confirmed reservations that have not checked out
-          cannot be deactivated.
-        </div>
+        {notice && (
+          <div className={styles.notice}>
+            {notice}
+          </div>
+        )}
 
         <div className={styles.actions}>
           <button
