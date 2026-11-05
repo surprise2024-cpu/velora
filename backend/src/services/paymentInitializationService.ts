@@ -187,6 +187,60 @@ if (owner.type === "guest") {
         );
       }
 
+      
+const bookingRooms = await tx.bookingRoom.findMany({
+  where: {
+    bookingId: booking.id,
+  },
+  select: {
+    room: {
+      select: {
+        branchId: true,
+      },
+    },
+  },
+});
+
+const branchIds = [
+  ...new Set(
+    bookingRooms.map((item) => item.room.branchId)
+  ),
+].sort();
+
+if (branchIds.length !== 1) {
+  throw new PaymentInitializationError(
+    409,
+    "Booking has invalid branch assignments"
+  );
+}
+
+const branchId = branchIds[0]!;
+
+// Lock the branch using the same key as
+// booking creation and branch deactivation.
+await tx.$executeRaw`
+  SELECT pg_advisory_xact_lock(
+    hashtextextended(${branchId}::text, 0)
+  )
+`;
+
+const branch = await tx.branch.findUnique({
+  where: {
+    id: branchId,
+  },
+  select: {
+    isActive: true,
+  },
+});
+
+if (!branch?.isActive) {
+  throw new PaymentInitializationError(
+    409,
+    "Payments cannot be initiated for an inactive hotel branch"
+  );
+}
+
+
       if (
         booking.payments.some(
           (payment) => payment.status === "COMPLETED"
