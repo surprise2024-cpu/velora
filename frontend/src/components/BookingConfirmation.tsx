@@ -5,7 +5,10 @@ import { apiRequest } from "../lib/api";
 import { useAuth } from "../context/useAuth";
 import styles from "./BookingConfirmation.module.css";
 import PaymentButton from "./PaymentButton";
-
+import {
+  loadGuestBookingRecovery,
+  saveGuestBookingRecovery,
+} from "../lib/bookingRecovery";
 
 export type BookingSelection = {
   branchId: string;
@@ -25,6 +28,7 @@ type BookingResponse = {
   data: {
     id: string;
     status: string;
+    guestAccessToken?: string;
   };
 };
 
@@ -41,7 +45,46 @@ export default function BookingConfirmation({
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [bookingId, setBookingId] = useState<string | null>(null);
+
+  const [bookingId, setBookingId] =
+  useState<string | null>(() => {
+    const recovery = loadGuestBookingRecovery();
+
+    if (
+      recovery &&
+      recovery.selection.branchId === selection.branchId &&
+      recovery.selection.roomTypeId === selection.roomTypeId &&
+      recovery.selection.checkIn === selection.checkIn &&
+      recovery.selection.checkOut === selection.checkOut &&
+      recovery.selection.guestCount === selection.guestCount
+    ) {
+      return recovery.bookingId;
+    }
+
+    return null;
+  });
+
+const [guestToken, setGuestToken] =
+  useState<string | null>(() => {
+    const recovery = loadGuestBookingRecovery();
+
+    if (
+      recovery &&
+      recovery.selection.branchId === selection.branchId &&
+      recovery.selection.roomTypeId === selection.roomTypeId &&
+      recovery.selection.checkIn === selection.checkIn &&
+      recovery.selection.checkOut === selection.checkOut &&
+      recovery.selection.guestCount === selection.guestCount
+    ) {
+      return recovery.guestToken;
+    }
+
+    return null;
+  });
+
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
   const estimatedTotal =
     selection.nightlyPrice * selection.nights;
@@ -58,22 +101,51 @@ export default function BookingConfirmation({
     setError(null);
 
     try {
+      const isGuest = !user;
+
+      if (isGuest) {
+        if (guestName.trim().length < 2) {
+          throw new Error("Please enter your full name.");
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim())) {
+          throw new Error("Please enter a valid email address.");
+        }
+
+        if (guestPhone.trim().length < 7) {
+          throw new Error("Please enter a valid phone number.");
+        }
+      }
+
+      const endpoint = isGuest
+        ? "/bookings/guest"
+        : "/bookings";
+
+      const bookingPayload = {
+        branchId: selection.branchId,
+        checkIn: selection.checkIn,
+        checkOut: selection.checkOut,
+        guestCount: selection.guestCount,
+        rooms: [
+          {
+            roomTypeId: selection.roomTypeId,
+            quantity: 1,
+          },
+        ],
+        ...(isGuest
+          ? {
+              guestName: guestName.trim(),
+              guestEmail: guestEmail.trim(),
+              guestPhone: guestPhone.trim(),
+            }
+          : {}),
+      };
+
       const response = await apiRequest<BookingResponse>(
-        "/bookings",
+        endpoint,
         {
           method: "POST",
-          body: JSON.stringify({
-            branchId: selection.branchId,
-            checkIn: selection.checkIn,
-            checkOut: selection.checkOut,
-            guestCount: selection.guestCount,
-            rooms: [
-              {
-                roomTypeId: selection.roomTypeId,
-                quantity: 1,
-              },
-            ],
-          }),
+          body: JSON.stringify(bookingPayload),
         }
       );
 
@@ -81,8 +153,25 @@ export default function BookingConfirmation({
         throw new Error("Booking creation failed.");
       }
 
-      setBookingId(response.data.id);
+      if (isGuest) {
+        const token = response.data.guestAccessToken;
 
+        if (!token || !/^[a-f0-9]{64}$/.test(token)) {
+          throw new Error(
+            "Guest booking was created, but secure payment access is unavailable. Do not create another booking."
+          );
+        }
+
+        saveGuestBookingRecovery({
+          bookingId: response.data.id,
+          guestToken: token,
+          selection,
+        });
+
+        setGuestToken(token);
+      }
+
+      setBookingId(response.data.id);
     } catch (err) {
       setError(
         err instanceof Error
@@ -109,15 +198,23 @@ export default function BookingConfirmation({
         </p>
 
         <p className={styles.notice}>
-          Your reservation is not yet paid. Payment
-          confirmation will be handled separately.
+          Your reservation is awaiting payment.
+          Complete checkout to confirm your booking.
         </p>
 
-        <PaymentButton bookingId={bookingId} />
+        <PaymentButton
+          bookingId={bookingId}
+          guestToken={guestToken ?? undefined}
+        />
 
-        <Link to="/account" className={styles.accountLink}>
-          Go to My Account
-        </Link>
+        {user && (
+          <Link
+            to="/account"
+            className={styles.accountLink}
+          >
+            Go to My Account
+          </Link>
+        )}
       </section>
     );
   }
@@ -168,16 +265,61 @@ export default function BookingConfirmation({
         </p>
       </div>
 
-      
       {!user && (
-        <p className={styles.notice}>
-          You're exploring Velora as a guest. Your room selection
-          is ready, but you'll need to sign in with Google to
-          complete your reservation.{" "}
-          <Link to="/login">Continue to Sign In</Link>
-        </p>
-      )}
+        <div className={styles.details}>
+          <h4>Guest Contact Details</h4>
 
+          <p className={styles.notice}>
+            No account required. Enter your contact
+            information to continue as a guest.
+          </p>
+
+          <label htmlFor="guest-name">
+            Full name
+          </label>
+          <input
+            id="guest-name"
+            type="text"
+            autoComplete="name"
+            value={guestName}
+            onChange={(event) =>
+              setGuestName(event.target.value)
+            }
+            maxLength={120}
+            required
+          />
+
+          <label htmlFor="guest-email">
+            Email address
+          </label>
+          <input
+            id="guest-email"
+            type="email"
+            autoComplete="email"
+            value={guestEmail}
+            onChange={(event) =>
+              setGuestEmail(event.target.value)
+            }
+            maxLength={254}
+            required
+          />
+
+          <label htmlFor="guest-phone">
+            Phone number
+          </label>
+          <input
+            id="guest-phone"
+            type="tel"
+            autoComplete="tel"
+            value={guestPhone}
+            onChange={(event) =>
+              setGuestPhone(event.target.value)
+            }
+            maxLength={30}
+            required
+          />
+        </div>
+      )}
 
       {error && (
         <p className={styles.error} role="alert">
@@ -199,7 +341,7 @@ export default function BookingConfirmation({
           type="button"
           onClick={() => void confirmBooking()}
           className={styles.confirmButton}
-          disabled={!user || submitting}
+          disabled={submitting}
         >
           {submitting
             ? "Creating Reservation..."
