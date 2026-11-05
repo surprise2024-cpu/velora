@@ -23,14 +23,25 @@ async function lockBranch(
 
 // Protect future confirmed bookings and pending bookings
 // with unresolved or completed payments.
+
 async function countProtectedReservations(
   tx: Prisma.TransactionClient,
   roomId: string
 ) {
+  const dates = await tx.$queryRaw<{ today: Date }[]>`
+    SELECT CURRENT_DATE AS today
+  `;
+
+  const today = dates[0]?.today;
+
+  if (!today) {
+    throw new Error("Unable to determine database date");
+  }
+
   return tx.booking.count({
     where: {
       checkOut: {
-        gt: new Date(),
+        gt: today,
       },
       bookingRooms: {
         some: {
@@ -55,6 +66,7 @@ async function countProtectedReservations(
     },
   });
 }
+
 
 // =====================================================
 // GET ALL PHYSICAL ROOMS
