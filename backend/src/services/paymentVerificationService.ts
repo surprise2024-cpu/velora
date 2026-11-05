@@ -187,14 +187,59 @@ export async function verifyBookingPayment(
         );
       }
 
+      
+const branchIds = [
+  ...new Set(
+    (
+      await tx.bookingRoom.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          room: {
+            select: {
+              branchId: true,
+            },
+          },
+        },
+      })
+    ).map((item) => item.room.branchId)
+  ),
+].sort();
+
+const validBranchAssignment = branchIds.length === 1;
+
+let branchActive = false;
+
+if (validBranchAssignment) {
+  const branchId = branchIds[0]!;
+
+  // Match the branch lock used by booking creation,
+  // administrator approval and branch deactivation.
+  await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(
+      hashtextextended(${branchId}::text, 0)
+    )
+  `;
+
+  const branch = await tx.branch.findUnique({
+    where: { id: branchId },
+    select: { isActive: true },
+  });
+
+  branchActive = branch?.isActive === true;
+}
+
+
       const currentTotalCents = bookingTotalCents(booking);
 
       const requiresReview =
         booking.status === "CANCELLED" ||
+        !validBranchAssignment ||
+        !branchActive ||
         currentTotalCents !== expectedCents ||
         booking.payments.some(
           (existing) => existing.id !== currentPayment.id
         );
+
 
       if (verified.status === "success") {
         const paidAt = verified.paid_at
@@ -236,6 +281,8 @@ export async function verifyBookingPayment(
             bookingStatus: booking.status,
             currentTotalCents,
             expectedCents,
+            branchIds,
+            branchActive,
           });
         }
 
