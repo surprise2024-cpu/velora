@@ -264,21 +264,41 @@ router.delete("/branches/:id", async (req, res, next) => {
         throw new Error("Unable to determine database date.");
       }
 
-      const protectedBookings = await tx.booking.count({
-        where: {
-          status: "CONFIRMED",
-          checkOut: {
-            gt: today,
-          },
-          bookingRooms: {
-            some: {
-              room: {
-                branchId,
-              },
+      
+const protectedBookings = await tx.booking.count({
+  where: {
+    checkOut: {
+      gt: today,
+    },
+    bookingRooms: {
+      some: {
+        room: {
+          branchId,
+        },
+      },
+    },
+    OR: [
+      // Confirmed reservations that have not checked out.
+      {
+        status: "CONFIRMED",
+      },
+
+      // Pending reservations with money received or
+      // an unresolved payment attempt.
+      {
+        status: "PENDING",
+        payments: {
+          some: {
+            status: {
+              in: ["PENDING", "COMPLETED"],
             },
           },
         },
-      });
+      },
+    ],
+  },
+});
+
 
       if (protectedBookings > 0) {
         return {
@@ -311,14 +331,17 @@ router.delete("/branches/:id", async (req, res, next) => {
           message: "Accommodation is already inactive",
         });
 
+      
       case "HAS_RESERVATIONS":
         return res.status(409).json({
           success: false,
           message:
             `Cannot deactivate this branch. ` +
-            `${result.count} confirmed reservation(s) ` +
-            `have not yet checked out.`,
+            `${result.count} reservation(s) have not yet ` +
+            `checked out and are confirmed or have ` +
+            `unresolved/completed payments.`,
         });
+
 
       case "DEACTIVATED":
         return res.status(200).json({
