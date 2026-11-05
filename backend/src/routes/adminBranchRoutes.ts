@@ -332,5 +332,84 @@ router.delete("/branches/:id", async (req, res, next) => {
 });
 
 
+router.patch("/branches/:id/activate", async (req, res, next) => {
+  const parsedId = z.uuid().safeParse(req.params.id);
+
+  if (!parsedId.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid accommodation ID",
+    });
+  }
+
+  const branchId = parsedId.data;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Use the same branch lock as deactivation.
+      await tx.$executeRaw`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(${branchId}::text, 0)
+        )
+      `;
+
+      const branch = await tx.branch.findUnique({
+        where: { id: branchId },
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+        },
+      });
+
+      if (!branch) {
+        return { outcome: "NOT_FOUND" as const };
+      }
+
+      if (branch.isActive) {
+        return { outcome: "ALREADY_ACTIVE" as const };
+      }
+
+      const updated = await tx.branch.update({
+        where: { id: branchId },
+        data: { isActive: true },
+        select: {
+          id: true,
+          name: true,
+          isActive: true,
+        },
+      });
+
+      return {
+        outcome: "ACTIVATED" as const,
+        branch: updated,
+      };
+    });
+
+    switch (result.outcome) {
+      case "NOT_FOUND":
+        return res.status(404).json({
+          success: false,
+          message: "Accommodation not found",
+        });
+
+      case "ALREADY_ACTIVE":
+        return res.status(409).json({
+          success: false,
+          message: "Accommodation is already active",
+        });
+
+      case "ACTIVATED":
+        return res.status(200).json({
+          success: true,
+          message: `${result.branch.name} activated successfully`,
+          data: result.branch,
+        });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 export default router;
