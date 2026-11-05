@@ -11,11 +11,7 @@ import AccountLayout from "./components/AccountLayout";
 import MyBookingsPage from "./pages/MyBookingsPage";
 import FavouritesPage from "./pages/FavouritesPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
-
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
-  "http://localhost:5000/api/v1";
+import LoginPage from "./pages/LoginPage";
 
 export default function App() {
   return (
@@ -38,21 +34,7 @@ export default function App() {
         element={<PaymentReturnPage />}
       />
 
-
-      <Route
-        path="/login"
-        element={
-          <main>
-            <h1>Welcome to Velora Hotels</h1>
-            <p>Sign in to manage your hotel bookings.</p>
-            <a href={`${API_BASE_URL}/auth/google`}>
-              Sign in with Google
-            </a>
-          </main>
-        }
-      />
-
-      
+      <Route path="/login" element={<LoginPage />} />
       
       <Route element={<ProtectedRoute allowedRole="CUSTOMER" />}>
         <Route path="/account" element={<AccountLayout />}>
