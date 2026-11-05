@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
+import FavouriteButton from "./FavouriteButton";
 import styles from "./HotelCard.module.css";
-
 
 export type HotelBranch = {
   id: string;
@@ -18,7 +18,6 @@ export type HotelBranch = {
   isActive: boolean;
 };
 
-
 type HotelCardProps = {
   branch: HotelBranch;
 };
@@ -30,9 +29,14 @@ export default function HotelCard({ branch }: HotelCardProps) {
         <span className={styles.placeholderBrand}>
           VELORA HOTELS
         </span>
+
         <span className={styles.placeholderMessage}>
           Hotel photography coming soon
         </span>
+
+        <div className={styles.favouriteControl}>
+          <FavouriteButton branchId={branch.id} />
+        </div>
       </div>
 
       <div className={styles.content}>
