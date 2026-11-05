@@ -5,6 +5,7 @@ import AddBranchForm, {
   type EditableBranch,
 } from "../../components/admin/AddBranchForm";
 import styles from "./AdminBranchesPage.module.css";
+import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
 
 type AdminBranch = EditableBranch & {
   isActive: boolean;
@@ -30,6 +31,8 @@ export default function AdminBranchesPage() {
   const [editingBranch, setEditingBranch] =
     useState<AdminBranch | null>(null);
 
+  const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
+  const [branchToDeactivate, setBranchToDeactivate] = useState<AdminBranch | null>(null);
   useEffect(() => {
     let active = true;
 
@@ -111,6 +114,53 @@ export default function AdminBranchesPage() {
   ];
 
   const selectedFormBranch = editingBranch;
+
+  
+
+async function handleDeactivate() {
+  if (!branchToDeactivate || deactivatingId) return;
+
+  const branch = branchToDeactivate;
+
+  setDeactivatingId(branch.id);
+  setError("");
+  setSuccess("");
+
+  try {
+    const response = await apiRequest<{
+      success: boolean;
+      message?: string;
+    }>(`/admin/branches/${branch.id}`, {
+      method: "DELETE",
+    });
+
+    if (!response.success) {
+      throw new Error(
+        response.message || "Unable to deactivate branch."
+      );
+    }
+
+    setSuccess(
+      response.message || "Branch deactivated successfully."
+    );
+
+    setBranchToDeactivate(null);
+    setEditingBranch(null);
+    setShowAddForm(false);
+    setReloadKey((value) => value + 1);
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Unable to deactivate branch."
+    );
+
+    setBranchToDeactivate(null);
+  } finally {
+    setDeactivatingId(null);
+  }
+}
+
 
   return (
     <main className={styles.page}>
@@ -241,13 +291,28 @@ export default function AdminBranchesPage() {
                         </td>
 
                         <td>
-                          <button
-                            type="button"
-                            className={styles.editButton}
-                            onClick={() => openEdit(branch)}
-                          >
-                            Edit
-                          </button>
+                          <div className={styles.actionGroup}>
+                            <button
+                              type="button"
+                              className={styles.editButton}
+                              onClick={() => openEdit(branch)}
+                            >
+                              Edit
+                            </button>
+
+                            {branch.isActive && (
+                              <button
+                                type="button"
+                                className={styles.deactivateButton}
+                                disabled={deactivatingId !== null}
+                                onClick={() => setBranchToDeactivate(branch)}
+                              >
+                                {deactivatingId === branch.id
+                                  ? "Deactivating..."
+                                  : "Deactivate"}
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -258,6 +323,23 @@ export default function AdminBranchesPage() {
           </section>
         </>
       )}
+
+      {branchToDeactivate && (
+        <AdminConfirmModal
+          title="Deactivate Branch?"
+          itemName={branchToDeactivate.name}
+          description="Are you sure you want to deactivate this hotel branch? It will no longer be available as an active location."
+          confirmLabel="Deactivate Branch"
+          loading={deactivatingId !== null}
+          onConfirm={() => void handleDeactivate()}
+          onCancel={() => {
+            if (!deactivatingId) {
+              setBranchToDeactivate(null);
+            }
+          }}
+        />
+      )}
+
     </main>
   );
 }
