@@ -1,22 +1,13 @@
 
 import { useEffect, useState } from "react";
 import { apiRequest } from "../../lib/api";
+import AddBranchForm, {
+  type EditableBranch,
+} from "../../components/admin/AddBranchForm";
 import styles from "./AdminBranchesPage.module.css";
 
-type AdminBranch = {
-  id: string;
-  brandId: string;
-  name: string;
-  description: string | null;
-  address: string;
-  city: string;
-  province: string;
-  country: string;
-  starRating: number | null;
+type AdminBranch = EditableBranch & {
   isActive: boolean;
-  images: string[];
-  amenities: string[];
-  policies: string[];
   _count: {
     rooms: number;
     roomTypes: number;
@@ -32,7 +23,12 @@ export default function AdminBranchesPage() {
   const [branches, setBranches] = useState<AdminBranch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [reloadKey, setReloadKey] = useState(0);
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingBranch, setEditingBranch] =
+    useState<AdminBranch | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -58,7 +54,7 @@ export default function AdminBranchesPage() {
           setError(
             err instanceof Error
               ? err.message
-              : "Unable to load hotel branches."
+              : "Unable to load branches."
           );
         }
       } finally {
@@ -75,6 +71,30 @@ export default function AdminBranchesPage() {
     };
   }, [reloadKey]);
 
+  function handleSaved() {
+    setSuccess(
+      editingBranch
+        ? "Branch updated successfully."
+        : "Branch created successfully."
+    );
+
+    setShowAddForm(false);
+    setEditingBranch(null);
+    setReloadKey((value) => value + 1);
+  }
+
+  function openEdit(branch: AdminBranch) {
+    setShowAddForm(false);
+    setEditingBranch(branch);
+    setSuccess("");
+  }
+
+  function openAdd() {
+    setEditingBranch(null);
+    setShowAddForm(true);
+    setSuccess("");
+  }
+
   const activeBranches = branches.filter(
     (branch) => branch.isActive
   ).length;
@@ -90,6 +110,8 @@ export default function AdminBranchesPage() {
     { label: "Total Rooms", value: totalRooms },
   ];
 
+  const selectedFormBranch = editingBranch;
+
   return (
     <main className={styles.page}>
       <header className={styles.pageHeader}>
@@ -97,7 +119,39 @@ export default function AdminBranchesPage() {
           <h1>Branches</h1>
           <p>Manage Velora hotel locations and inventory.</p>
         </div>
+
+        <button
+          type="button"
+          onClick={openAdd}
+          disabled={loading}
+          className={styles.addButton}
+        >
+          + Add Branch
+        </button>
       </header>
+
+      {success && (
+        <p role="status" className={styles.success}>
+          {success}
+        </p>
+      )}
+
+      {(showAddForm || selectedFormBranch) && (
+        <AddBranchForm
+          key={selectedFormBranch?.id ?? "new-branch"}
+          brandId={
+            selectedFormBranch?.brandId ??
+            branches[0]?.brandId ??
+            ""
+          }
+          branch={selectedFormBranch ?? undefined}
+          onCancel={() => {
+            setShowAddForm(false);
+            setEditingBranch(null);
+          }}
+          onSaved={handleSaved}
+        />
+      )}
 
       {loading && (
         <p role="status" className={styles.message}>
@@ -154,6 +208,7 @@ export default function AdminBranchesPage() {
                       <th scope="col">Rooms</th>
                       <th scope="col">Room Types</th>
                       <th scope="col">Status</th>
+                      <th scope="col">Actions</th>
                     </tr>
                   </thead>
 
@@ -183,6 +238,16 @@ export default function AdminBranchesPage() {
                               ? "Active"
                               : "Inactive"}
                           </span>
+                        </td>
+
+                        <td>
+                          <button
+                            type="button"
+                            className={styles.editButton}
+                            onClick={() => openEdit(branch)}
+                          >
+                            Edit
+                          </button>
                         </td>
                       </tr>
                     ))}
