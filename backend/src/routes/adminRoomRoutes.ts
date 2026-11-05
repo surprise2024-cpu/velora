@@ -9,6 +9,52 @@ const router = Router();
 
 router.use(requireAdmin);
 
+
+router.get("/rooms", async (_req, res, next) => {
+  try {
+    const rooms = await prisma.room.findMany({
+      select: {
+        id: true,
+        branchId: true,
+        roomTypeId: true,
+        roomNumber: true,
+        floor: true,
+        isActive: true,
+        branch: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            isActive: true,
+          },
+        },
+        roomType: {
+          select: {
+            id: true,
+            name: true,
+            maxGuests: true,
+            basePrice: true,
+            currency: true,
+            isActive: true,
+          },
+        },
+      },
+      orderBy: [
+        { branch: { name: "asc" } },
+        { roomNumber: "asc" },
+      ],
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: rooms,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 const createRoomSchema = z.object({
   branchId: z.uuid(),
   roomTypeId: z.uuid(),
