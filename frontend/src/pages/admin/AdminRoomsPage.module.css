@@ -1,0 +1,282 @@
+
+.page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  color: #102c48;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pageHeader h1 {
+  margin: 0 0 5px;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.pageHeader p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.statistics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 9px;
+}
+
+.statCard span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.statCard strong {
+  font-size: 29px;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.roomsSection {
+  padding: 18px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 9px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sectionHeader span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 190px;
+}
+
+.filters label span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.filters select {
+  padding: 9px 12px;
+  border: 1px solid #d7dfe7;
+  border-radius: 6px;
+  background: #fff;
+  color: #102c48;
+  font-size: 12px;
+}
+
+.tableWrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.table thead {
+  background: #f1f4f6;
+}
+
+.table th {
+  padding: 11px 12px;
+  color: #64748b;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid #edf0f2;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.roomNumber {
+  font-weight: 650;
+}
+
+.subText {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.status {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.active {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.inactive {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.message {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.error {
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 12px;
+}
+
+.error button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.addButton {
+  padding: 10px 16px;
+  border: 1px solid #102c48;
+  border-radius: 6px;
+  background: #102c48;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.editButton,
+.deactivateButton,
+.activateButton {
+  padding: 7px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.editButton {
+  border: 1px solid #d7ad62;
+  background: #fffaf0;
+  color: #102c48;
+}
+
+.deactivateButton {
+  border: 1px solid #f0b7b7;
+  background: #fff5f5;
+  color: #a32626;
+}
+
+.activateButton {
+  border: 1px solid #b8d9c3;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.addButton:disabled,
+.editButton:disabled,
+.deactivateButton:disabled,
+.activateButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.actionGroup button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 768px) {
+  .statistics {
+    grid-template-columns: 1fr;
+  }
+
+  .pageHeader {
+    flex-wrap: wrap;
+  }
+
+  .pageHeader h1 {
+    font-size: 22px;
+  }
+
+  .roomsSection {
+    padding: 14px;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
