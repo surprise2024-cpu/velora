@@ -34,6 +34,54 @@ export default function AdminImageManager({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [savingCover, setSavingCover] = useState(false);
+
+  async function handleSetCover(index: number) {
+  if (index === 0 || uploading || savingCover) return;
+
+  setError("");
+  setSuccess("");
+  setSavingCover(true);
+
+  try {
+    const updatedImages = [...images];
+    const [selectedImage] = updatedImages.splice(index, 1);
+
+    updatedImages.unshift(selectedImage);
+
+    const endpoint =
+      targetType === "branch"
+        ? `/admin/branches/${targetId}`
+        : `/admin/room-types/${targetId}`;
+
+    const response = await apiRequest<{
+      success: boolean;
+      message?: string;
+    }>(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify({
+        images: updatedImages,
+      }),
+    });
+
+    if (!response.success) {
+      throw new Error(
+        response.message || "Unable to update cover image."
+      );
+    }
+
+    onImagesChanged(updatedImages);
+    setSuccess("Cover image updated successfully.");
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Unable to update cover image."
+    );
+  } finally {
+    setSavingCover(false);
+  }
+}
 
   async function handleUpload(
     event: ChangeEvent<HTMLInputElement>
@@ -153,6 +201,17 @@ export default function AdminImageManager({
                     ? "Cover image"
                     : `Image ${index + 1}`}
                 </span>
+
+                {index !== 0 && (
+                  <button
+                    type="button"
+                    className={styles.coverButton}
+                    disabled={uploading || savingCover}
+                    onClick={() => void handleSetCover(index)}
+                  >
+                    {savingCover ? "Saving..." : "Set as Cover"}
+                  </button>
+                )}
               </div>
             </div>
           ))}
