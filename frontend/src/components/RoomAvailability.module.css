@@ -202,6 +202,66 @@
   line-height: 1.6;
 }
 
+.roomImageContainer {
+  flex: 0 0 220px;
+  height: 170px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e8ede9;
+}
+
+.roomImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.roomImagePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #405c50, #9cad9f);
+  color: #ffffff;
+  text-align: center;
+}
+
+.roomImagePlaceholder strong {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.roomImagePlaceholder span {
+  font-size: 11px;
+}
+
+.roomInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .roomCard {
+    flex-wrap: wrap;
+  }
+
+  .roomImageContainer {
+    flex-basis: 180px;
+  }
+}
+
+@media (max-width: 600px) {
+  .roomImageContainer {
+    flex: none;
+    width: 100%;
+    height: 210px;
+  }
+}
 
 @media (max-width: 900px) {
   .searchForm {
