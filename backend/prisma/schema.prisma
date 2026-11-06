@@ -176,11 +176,18 @@ model Payment {
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
+  // Persistent manual payment review
+  requiresReview        Boolean       @default(false)
+  reviewedAt            DateTime?
+  reviewedById          String?       @db.Uuid
+
   booking Booking @relation(fields: [bookingId], references: [id])
 
   @@index([bookingId])
   @@index([status])
+  @@index([requiresReview, status])
 }
+
 
 enum PaymentStatus {
   PENDING
