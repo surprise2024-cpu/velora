@@ -48,15 +48,31 @@ app.use(sessionMiddleware);
 app.use(csrfSynchronisedProtection);
 
 // rate limit API requests
-app.use(
-    "/api",
-    rateLimit({
-        windowMs: 15 * 60 * 1000,
-        limit: 100,
-        standardHeaders: "draft-8",
-        legacyHeaders: false,
-    })
-);
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: process.env.NODE_ENV === "production" ? 300 : 1000,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+});
+
+// Protect authentication separately.
+app.use("/api/v1/auth/google", authLimiter);
+
+// Protect the rest of the API.
+app.use("/api", (req, res, next) => {
+  if (req.path.startsWith("/v1/auth/google")) {
+    return next();
+  }
+
+  return apiLimiter(req, res, next);
+});
 
 app.use("/api/v1/auth", authRoutes);
 
