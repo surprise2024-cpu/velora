@@ -97,12 +97,18 @@ router.get("/google/callback", async (req, res) => {
   delete req.session.googleOAuth;
 
   try {
+    console.log("[OAuth] Loading Google configuration");
+
     const config = await getGoogleConfig();
+
+    console.log("[OAuth] Google configuration loaded");
 
     const currentUrl = new URL(
       req.originalUrl,
       googleCallbackUrl
     );
+
+    console.log("[OAuth] Starting authorization code exchange");
 
     const tokens = await oidc.authorizationCodeGrant(
       config,
@@ -114,6 +120,8 @@ router.get("/google/callback", async (req, res) => {
         idTokenExpected: true,
       }
     );
+
+    console.log("[OAuth] Authorization code exchange completed");
 
     const claims = tokens.claims();
 
