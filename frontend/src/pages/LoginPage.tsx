@@ -3,10 +3,11 @@ import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import styles from "./LoginPage.module.css";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
-  "http://localhost:5000/api/v1";
-
+const API_BASE_URL = import.meta.env.PROD
+  ? "/api/v1"
+  : import.meta.env.VITE_API_BASE_URL ??
+    "http://localhost:5000/api/v1";
+    
 export default function LoginPage() {
   const { user, loading } = useAuth();
 
