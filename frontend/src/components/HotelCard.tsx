@@ -23,22 +23,34 @@ type HotelCardProps = {
 };
 
 export default function HotelCard({ branch }: HotelCardProps) {
+  const coverImage = branch.images?.[0];
+
   return (
     <article className={styles.card}>
-      <div className={styles.imagePlaceholder}>
-        <span className={styles.placeholderBrand}>
-          VELORA HOTELS
-        </span>
+      <div className={styles.imageContainer}>
+        {coverImage ? (
+          <img
+            src={coverImage}
+            alt={`${branch.name} hotel exterior or accommodation`}
+            className={styles.hotelImage}
+            loading="lazy"
+          />
+        ) : (
+          <div className={styles.imagePlaceholder}>
+            <span className={styles.placeholderBrand}>
+              VELORA HOTELS
+            </span>
 
-        <span className={styles.placeholderMessage}>
-          Hotel photography coming soon
-        </span>
+            <span className={styles.placeholderMessage}>
+              Hotel photography coming soon
+            </span>
+          </div>
+        )}
 
         <div className={styles.favouriteControl}>
           <FavouriteButton branchId={branch.id} />
         </div>
       </div>
-
       <div className={styles.content}>
         <div className={styles.metadata}>
           <span className={styles.location}>

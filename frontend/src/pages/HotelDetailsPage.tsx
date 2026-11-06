@@ -17,6 +17,8 @@ export default function HotelDetailsPage() {
   const { branchId } = useParams<{ branchId: string }>();
 
   const [branch, setBranch] = useState<HotelBranch | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +43,7 @@ export default function HotelDetailsPage() {
 
         if (active) {
           setBranch(result.data);
+          setSelectedImageIndex(0);
         }
       } catch (err) {
         if (active) {
@@ -63,6 +66,11 @@ export default function HotelDetailsPage() {
       active = false;
     };
   }, [branchId]);
+
+  const galleryImages = branch?.images ?? [];
+
+  const activeImage =
+    galleryImages[selectedImageIndex] ?? galleryImages[0];
 
   return (
     <div className={styles.page}>
@@ -110,10 +118,55 @@ export default function HotelDetailsPage() {
               </div>
             </header>
 
-            <div className={styles.galleryPlaceholder}>
-              <strong>VELORA HOTELS</strong>
-              <span>Hotel photography coming soon</span>
-            </div>
+            {galleryImages.length > 0 ? (
+  <section
+    className={styles.gallery}
+    aria-label={`${branch.name} photo gallery`}
+  >
+    <div className={styles.mainImageContainer}>
+      <img
+        src={activeImage}
+        alt={`${branch.name} photograph ${selectedImageIndex + 1}`}
+        className={styles.mainImage}
+      />
+
+      <span className={styles.imageCounter}>
+        {selectedImageIndex + 1} / {galleryImages.length}
+      </span>
+    </div>
+
+    {galleryImages.length > 1 && (
+      <div className={styles.thumbnailGrid}>
+        {galleryImages.map((image, index) => (
+          <button
+            key={`${image}-${index}`}
+            type="button"
+            className={`${styles.thumbnailButton} ${
+              selectedImageIndex === index
+                ? styles.thumbnailActive
+                : ""
+            }`}
+            onClick={() => setSelectedImageIndex(index)}
+            aria-label={`View photograph ${index + 1}`}
+            aria-pressed={selectedImageIndex === index}
+          >
+            <img
+              src={image}
+              alt=""
+              className={styles.thumbnailImage}
+              loading="lazy"
+            />
+          </button>
+        ))}
+      </div>
+    )}
+  </section>
+) : (
+  <div className={styles.galleryPlaceholder}>
+    <strong>VELORA HOTELS</strong>
+    <span>Hotel photography coming soon</span>
+  </div>
+)}
 
             <div className={styles.contentGrid}>
               <div className={styles.mainContent}>
