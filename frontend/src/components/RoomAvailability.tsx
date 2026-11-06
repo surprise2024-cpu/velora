@@ -13,6 +13,7 @@ type RoomAvailabilityItem = {
   basePrice: string;
   currency: string;
   availableRooms: number;
+  images?: string[];
 };
 
 type AvailabilityResponse = {
@@ -337,6 +338,22 @@ export default function RoomAvailability({
                     key={room.roomTypeId}
                     className={styles.roomCard}
                   >
+                    <div className={styles.roomImageContainer}>
+                      {room.images?.[0] ? (
+                        <img
+                          src={room.images[0]}
+                          alt={`${room.name} at ${branchName}`}
+                          className={styles.roomImage}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className={styles.roomImagePlaceholder}>
+                          <strong>VELORA HOTELS</strong>
+                          <span>Room photography coming soon</span>
+                        </div>
+                      )}
+                    </div>
+
                     <div className={styles.roomInfo}>
                       <h4>{room.name}</h4>
 
