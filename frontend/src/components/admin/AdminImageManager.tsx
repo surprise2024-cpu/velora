@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from "react";
 import { apiRequest } from "../../lib/api";
 import styles from "./AdminImageManager.module.css";
+import AdminConfirmModal from "./AdminConfirmModal";
 
 type TargetType = "branch" | "roomType";
 
@@ -35,9 +36,11 @@ export default function AdminImageManager({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [savingCover, setSavingCover] = useState(false);
-
+  const [removingImage, setRemovingImage] = useState(false);
+  const [pendingRemovalIndex, setPendingRemovalIndex] = useState<number | null>(null);
+  
   async function handleSetCover(index: number) {
-  if (index === 0 || uploading || savingCover) return;
+  if (index === 0 || uploading || savingCover || removingImage) return;
 
   setError("");
   setSuccess("");
@@ -83,11 +86,61 @@ export default function AdminImageManager({
   }
 }
 
+  async function handleRemoveImage(index: number) {
+  if (uploading || savingCover || removingImage) return;
+
+  setPendingRemovalIndex(null);
+
+  setError("");
+  setSuccess("");
+  setRemovingImage(true);
+
+  try {
+    const updatedImages = images.filter(
+      (_, imageIndex) => imageIndex !== index
+    );
+
+    const endpoint =
+      targetType === "branch"
+        ? `/admin/branches/${targetId}`
+        : `/admin/room-types/${targetId}`;
+
+    const response = await apiRequest<{
+      success: boolean;
+      message?: string;
+    }>(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify({
+        images: updatedImages,
+      }),
+    });
+
+    if (!response.success) {
+      throw new Error(
+        response.message || "Unable to remove image."
+      );
+    }
+
+    onImagesChanged(updatedImages);
+    setPendingRemovalIndex(null);
+    setSuccess("Image removed successfully.");
+
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Unable to remove image."
+    );
+  } finally {
+    setRemovingImage(false);
+  }
+}
+
   async function handleUpload(
     event: ChangeEvent<HTMLInputElement>
   ) {
     const file = event.target.files?.[0];
-    if (!file || uploading) return;
+    if (!file || uploading || savingCover || removingImage) return;
 
     setError("");
     setSuccess("");
@@ -160,7 +213,7 @@ export default function AdminImageManager({
             type="file"
             accept="image/jpeg,image/png,image/webp"
             onChange={(event) => void handleUpload(event)}
-            disabled={uploading}
+            disabled={uploading || savingCover || removingImage}
             hidden
           />
         </label>
@@ -202,21 +255,51 @@ export default function AdminImageManager({
                     : `Image ${index + 1}`}
                 </span>
 
-                {index !== 0 && (
+                <div className={styles.imageActions}>
+                  {index !== 0 && (
+                    <button
+                      type="button"
+                      className={styles.coverButton}
+                      disabled={uploading || savingCover || removingImage}
+                      onClick={() => void handleSetCover(index)}
+                    >
+                      {savingCover ? "Saving..." : "Set as Cover"}
+                    </button>
+                  )}
+
                   <button
                     type="button"
-                    className={styles.coverButton}
-                    disabled={uploading || savingCover}
-                    onClick={() => void handleSetCover(index)}
+                    className={styles.removeButton}
+                    disabled={uploading || savingCover || removingImage}
+                    onClick={() => setPendingRemovalIndex(index)}
                   >
-                    {savingCover ? "Saving..." : "Set as Cover"}
+                    {removingImage ? "Removing..." : "Remove"}
                   </button>
-                )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+      {pendingRemovalIndex !== null && (
+        <AdminConfirmModal
+          title="Remove Photograph"
+          itemName={`${targetName} — Image ${pendingRemovalIndex + 1}`}
+          description={
+            pendingRemovalIndex === 0
+              ? "This photograph will be removed from the gallery. The next photograph will automatically become the cover."
+              : "This photograph will be removed from the gallery."
+          }
+          notice="The photograph will be unassigned from this listing. The original Cloudinary file will not be permanently deleted."
+          confirmLabel="Remove Image"
+          cancelLabel="Keep Image"
+          loadingLabel="Removing..."
+          loading={removingImage}
+          onCancel={() => setPendingRemovalIndex(null)}
+          onConfirm={() => void handleRemoveImage(pendingRemovalIndex)}
+        />
+      )}
+
     </section>
   );
 }
