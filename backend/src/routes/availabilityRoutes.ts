@@ -110,6 +110,7 @@ router.get("/:id/availability", async (req, res) => {
       basePrice: roomType.basePrice,
       currency: roomType.currency,
       availableRooms: roomType.rooms.length,
+      images: roomType.images,
     }));
 
     return res.status(200).json({
