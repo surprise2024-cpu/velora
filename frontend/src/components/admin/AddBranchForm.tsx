@@ -127,7 +127,7 @@ export default function AddBranchForm({
       images,
       amenities: splitLines(form.amenities),
       policies: splitLines(form.policies),
-      ...(!isEditing && { brandId }),
+      ...(!isEditing && brandId ? { brandId } : {}),
     };
 
     setSaving(true);
