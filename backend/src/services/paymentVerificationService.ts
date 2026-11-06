@@ -5,7 +5,8 @@ import { bookingTotalCents } from "./paymentInitializationService.js";
 
 type PaymentOwner =
   | { type: "customer"; userId: string }
-  | { type: "guest"; token: string };
+  | { type: "guest"; token: string }
+  | { type: "webhook" };
 
 interface PaystackVerifyResponse {
   status: boolean;
@@ -53,7 +54,7 @@ function guestTokenMatches(
   );
 }
 
-export async function verifyBookingPayment(
+async function reconcileBookingPayment(
   reference: string,
   owner: PaymentOwner
 ) {
@@ -74,7 +75,9 @@ export async function verifyBookingPayment(
   }
 
   const authorized =
-    owner.type === "customer"
+  owner.type === "webhook"
+    ? true
+    : owner.type === "customer"
       ? payment.booking.userId === owner.userId
       : payment.booking.userId === null &&
         guestTokenMatches(
@@ -172,13 +175,15 @@ export async function verifyBookingPayment(
 
       // Recheck authorization while holding the booking lock.
       const stillAuthorized =
-        owner.type === "customer"
-          ? booking.userId === owner.userId
-          : booking.userId === null &&
-            guestTokenMatches(
-              owner.token,
-              booking.guestAccessTokenHash
-            );
+        owner.type === "webhook"
+          ? true
+          : owner.type === "customer"
+            ? booking.userId === owner.userId
+            : booking.userId === null &&
+              guestTokenMatches(
+                owner.token,
+                booking.guestAccessTokenHash
+              );
 
       if (!stillAuthorized) {
         throw new PaymentVerificationError(
@@ -339,4 +344,17 @@ if (validBranchAssignment) {
     recordedStatus: reconciliation.payment.status,
     requiresReview: reconciliation.requiresReview,
   };
+}
+
+export async function verifyBookingPayment(
+  reference: string,
+  owner: Exclude<PaymentOwner, { type: "webhook" }>
+) {
+  return reconcileBookingPayment(reference, owner);
+}
+
+export async function reconcilePaystackWebhookPayment(
+  reference: string
+) {
+  return reconcileBookingPayment(reference, { type: "webhook" });
 }
