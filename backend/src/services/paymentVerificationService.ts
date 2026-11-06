@@ -273,7 +273,10 @@ if (validBranchAssignment) {
 
             // A repeated webhook must not clear an unresolved review.
             requiresReview:
-              currentPayment.requiresReview || requiresReview,
+              currentPayment.reviewedAt !== null
+                ? false
+                : currentPayment.requiresReview || requiresReview,
+
           },
         });
 
