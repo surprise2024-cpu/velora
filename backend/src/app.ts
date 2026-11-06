@@ -18,6 +18,7 @@ import adminPaymentRoutes from "./routes/adminPaymentRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import favouriteRoutes from "./routes/favouriteRoutes.js";
 import adminImageRoutes from "./routes/adminImageRoutes.js";
+import paystackWebhookRoutes from "./routes/paystackWebhookRoutes.js";
 
 export const app = express();
 
@@ -31,6 +32,15 @@ app.disable("x-powered-by");
 
 // basic security header
 app.use(helmet());
+
+app.use(
+  "/api/v1/webhooks/paystack",
+  express.raw({
+    type: "application/json",
+    limit: "100kb",
+  }),
+  paystackWebhookRoutes
+);
 
 app.use(
     cors({
