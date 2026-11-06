@@ -258,17 +258,25 @@ if (validBranchAssignment) {
           );
         }
 
-        const savedPayment =
-          currentPayment.status === "COMPLETED"
-            ? currentPayment
-            : await tx.payment.update({
-                where: { id: currentPayment.id },
-                data: {
+        
+        const savedPayment = await tx.payment.update({
+          where: { id: currentPayment.id },
+          data: {
+            // Preserve an already-completed payment.
+            ...(currentPayment.status !== "COMPLETED"
+              ? {
                   status: "COMPLETED",
                   providerTransactionId: String(verified.id),
                   paidAt,
-                },
-              });
+                }
+              : {}),
+
+            // A repeated webhook must not clear an unresolved review.
+            requiresReview:
+              currentPayment.requiresReview || requiresReview,
+          },
+        });
+
 
         // Confirm only a successfully paid booking
         // that does not require manual review.
