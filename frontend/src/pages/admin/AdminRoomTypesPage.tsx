@@ -4,6 +4,8 @@ import { apiRequest } from "../../lib/api";
 import styles from "./AdminRoomTypesPage.module.css";
 import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
 import AddRoomTypeForm from "../../components/admin/AddRoomTypeForm";
+import AdminImageManager from "../../components/admin/AdminImageManager";
+import AdminModal from "../../components/admin/AdminModal";
 
 type AdminRoomType = {
   id: string;
@@ -43,6 +45,9 @@ type PendingStatusChange = {
 };
 
 export default function AdminRoomTypesPage() {
+  const [imageRoomTypeId, setImageRoomTypeId] = useState<string | null>(null);
+
+  const [imageUploading, setImageUploading] = useState(false);
   const [roomTypes, setRoomTypes] = useState<AdminRoomType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -100,6 +105,9 @@ export default function AdminRoomTypesPage() {
       active = false;
     };
   }, [reloadKey]);
+
+  const selectedImageRoomType =
+    roomTypes.find((roomType) => roomType.id === imageRoomTypeId) ?? null;
 
   const branches = Array.from(
     new Map(
@@ -383,6 +391,19 @@ export default function AdminRoomTypesPage() {
 
                         <td>
                           <div className={styles.actionGroup}>
+
+                            <button
+                              type="button"
+                              className={styles.editButton}
+                              disabled={changingStatusId !== null}
+                              onClick={() => {
+                                setImageUploading(false);
+                                setImageRoomTypeId(roomType.id);
+                              }}
+                            >
+                              Manage Images
+                            </button>
+
                             <button
                                 type="button"
                                 className={styles.editButton}
@@ -447,6 +468,34 @@ export default function AdminRoomTypesPage() {
             )}
           </section>
         </>
+      )}
+
+      {selectedImageRoomType && (
+        <AdminModal
+          title="Manage Room-Type Images"
+          subtitle={`${selectedImageRoomType.name} — ${selectedImageRoomType.branch.name}`}
+          size="large"
+          canClose={!imageUploading}
+          onClose={() => setImageRoomTypeId(null)}
+        >
+          <AdminImageManager
+            key={selectedImageRoomType.id}
+            targetType="roomType"
+            targetId={selectedImageRoomType.id}
+            targetName={selectedImageRoomType.name}
+            images={selectedImageRoomType.images ?? []}
+            onImagesChanged={(images) => {
+              setRoomTypes((current) =>
+                current.map((roomType) =>
+                  roomType.id === selectedImageRoomType.id
+                    ? { ...roomType, images }
+                    : roomType
+                )
+              );
+            }}
+            onUploadingChange={setImageUploading}
+          />
+        </AdminModal>
       )}
 
       {pendingStatusChange && (
