@@ -99,11 +99,6 @@ export default function AddBranchForm({
 
     setError("");
 
-    if (!isEditing && !brandId) {
-      setError("A hotel brand must be selected.");
-      return;
-    }
-
     const images = splitLines(form.images);
 
     for (const image of images) {
