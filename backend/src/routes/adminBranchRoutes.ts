@@ -52,7 +52,7 @@ router.get("/branches", async (_req, res, next) => {
 
 
 const createBranchSchema = z.object({
-  brandId: z.uuid(),
+  brandId: z.uuid().optional(),
   name: z.string().trim().min(1).max(150),
   description: z.string().trim().optional(),
   address: z.string().trim().min(1),
@@ -81,19 +81,21 @@ router.post("/branches", async (req, res, next) => {
   }
 
   try {
-    const { brandId, ...details } = parsed.data;
+    const { brandId: _providedBrandId, ...details } = parsed.data;
 
     const brand = await prisma.hotelBrand.findUnique({
-      where: { id: brandId },
+      where: { name: "Velora Hotels" },
       select: { id: true },
     });
 
     if (!brand) {
-      return res.status(404).json({
+      return res.status(409).json({
         success: false,
-        message: "Hotel brand not found",
+        message: "Velora Hotels brand has not been configured",
       });
     }
+
+    const brandId = brand.id;
 
     
     const branch = await prisma.branch.create({
