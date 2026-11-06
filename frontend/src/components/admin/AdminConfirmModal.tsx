@@ -9,6 +9,8 @@ type Props = {
   confirmLabel: string;
   loading?: boolean;
   notice?: string;
+  cancelLabel?: string;
+  loadingLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -21,6 +23,8 @@ export default function AdminConfirmModal({
   loading = false,
   onConfirm,
   onCancel,
+  cancelLabel = "Keep Branch",
+  loadingLabel = "Deactivating...",
   notice,
 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -92,7 +96,7 @@ export default function AdminConfirmModal({
             onClick={onCancel}
             disabled={loading}
           >
-            Keep Branch
+            {cancelLabel}
           </button>
 
           <button
@@ -101,7 +105,7 @@ export default function AdminConfirmModal({
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? "Deactivating..." : confirmLabel}
+            {loading ? loadingLabel : confirmLabel}
           </button>
         </div>
       </div>
