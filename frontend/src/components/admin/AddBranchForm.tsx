@@ -186,7 +186,7 @@ export default function AddBranchForm({
               }
             />
             <FormFieldError
-              id="branch-name-error"
+              id="branch-city-error"
               message={fieldErrors.city}
             />
           </label>
@@ -201,7 +201,7 @@ export default function AddBranchForm({
               }
             />
             <FormFieldError
-              id="branch-name-error"
+              id="branch-province-error"
               message={fieldErrors.province}
             />
           </label>
@@ -216,7 +216,7 @@ export default function AddBranchForm({
               }
             />
             <FormFieldError
-              id="branch-name-error"
+              id="branch-country-error"
               message={fieldErrors.country}
             />
           </label>
@@ -231,8 +231,8 @@ export default function AddBranchForm({
               }
             />
             <FormFieldError
-              id="branch-name-error"
-              message={fieldErrors.name}
+              id="branch-address-error"
+              message={fieldErrors.address}
             />
           </label>
 
@@ -251,7 +251,7 @@ export default function AddBranchForm({
               ))}
             </select>
             <FormFieldError
-              id="branch-name-error"
+              id="branch-rating-error"
               message={fieldErrors.starRating}
             />
           </label>
@@ -267,7 +267,7 @@ export default function AddBranchForm({
             }
           />
           <FormFieldError
-            id="branch-name-error"
+            id="branch-description-error"
             message={fieldErrors.description}
           />
         </label>
@@ -282,7 +282,7 @@ export default function AddBranchForm({
             }
           />
           <FormFieldError
-            id="branch-name-error"
+            id="branch-images-error"
             message={fieldErrors.images}
           />
         </label>
@@ -297,7 +297,7 @@ export default function AddBranchForm({
             }
           />
           <FormFieldError
-            id="branch-name-error"
+            id="branch-amenities-error"
             message={fieldErrors.amenities}
           />
         </label>
@@ -312,7 +312,7 @@ export default function AddBranchForm({
             }
           />
           <FormFieldError
-            id="branch-name-error"
+            id="branch-policies-error"
             message={fieldErrors.policies}
           />
         </label>
