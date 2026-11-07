@@ -5,10 +5,13 @@ import styles from "./RoomAvailability.module.css";
 import BookingConfirmation from "./BookingConfirmation";
 import type { BookingSelection } from "./BookingConfirmation";
 import { loadGuestBookingRecovery } from "../lib/bookingRecovery";
+import RoomDetailsModal from "./RoomDetailsModal";
 
 type RoomAvailabilityItem = {
   roomTypeId: string;
   name: string;
+  description: string | null;
+  amenities: string[];
   maxGuests: number;
   basePrice: string;
   currency: string;
@@ -67,6 +70,9 @@ export default function RoomAvailability({
   const [guests, setGuests] = useState(2);
 
   const [rooms, setRooms] = useState<RoomAvailabilityItem[]>([]);
+
+  const [detailsRoom, setDetailsRoom] = useState<RoomAvailabilityItem | null>(null);
+
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +93,8 @@ export default function RoomAvailability({
   const requestId = useRef(0);
 
   const nights = calculateNights(checkIn, checkOut);
+
+
 
   useEffect(() => {
     requestId.current += 1;
@@ -357,6 +365,14 @@ export default function RoomAvailability({
                     <div className={styles.roomInfo}>
                       <h4>{room.name}</h4>
 
+                      <button
+                        type="button"
+                        className={styles.detailsButton}
+                        onClick={() => setDetailsRoom(room)}
+                      >
+                        View Room Details
+                      </button>
+
                       <p>
                         Maximum guests: {room.maxGuests}
                       </p>
@@ -417,6 +433,28 @@ export default function RoomAvailability({
           )}
         </div>
       )}
+
+      {detailsRoom && (
+        <RoomDetailsModal
+          key={detailsRoom.roomTypeId}
+          room={detailsRoom}
+          branchName={branchName}
+          nights={nights}
+          canBook={
+            detailsRoom.availableRooms > 0 &&
+            detailsRoom.maxGuests >= guests &&
+            Number.isFinite(Number(detailsRoom.basePrice)) &&
+            Number(detailsRoom.basePrice) >= 0 &&
+            nights >= 1
+          }
+          onClose={() => setDetailsRoom(null)}
+          onSelect={(room) => {
+            setDetailsRoom(null);
+            selectRoom(room);
+          }}
+        />
+      )}
+
     </div>
   );
 }
