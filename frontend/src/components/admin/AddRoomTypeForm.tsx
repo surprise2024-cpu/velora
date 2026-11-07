@@ -36,6 +36,7 @@ type AddRoomTypeFormProps = {
   roomType?: EditableRoomType;
   onCancel: () => void;
   onSaved: () => void;
+  onSavingChange?: (saving: boolean) => void;
 };
 
 function splitLines(value: string) {
@@ -49,6 +50,7 @@ export default function AddRoomTypeForm({
   roomType,
   onCancel,
   onSaved,
+  onSavingChange,
 }: AddRoomTypeFormProps) {
   const isEditing = Boolean(roomType);
 
@@ -78,6 +80,11 @@ export default function AddRoomTypeForm({
   );
 
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    onSavingChange?.(saving);
+  }, [saving, onSavingChange]);
+
   const [error, setError] = useState("");
 
   const {
