@@ -62,8 +62,10 @@ export default function AdminRoomTypesPage() {
   const [changingStatusId, setChangingStatusId] =
     useState<string | null>(null);
 
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [editingRoomType, setEditingRoomType] = useState<AdminRoomType | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingRoomType, setEditingRoomType] = useState<AdminRoomType | null>(null);
+
+  const [roomTypeFormSaving, setRoomTypeFormSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -179,8 +181,6 @@ export default function AdminRoomTypesPage() {
         }
       );
 
-      
-
       if (!response.success) {
         throw new Error(
           response.message || `Unable to ${action} room type.`
@@ -193,6 +193,7 @@ export default function AdminRoomTypesPage() {
 
       setPendingStatusChange(null);
       setReloadKey((value) => value + 1);
+
     } catch (err) {
       setError(
         err instanceof Error
@@ -200,40 +201,46 @@ export default function AdminRoomTypesPage() {
           : `Unable to ${action} room type.`
       );
 
-        setPendingStatusChange(null);
-        setShowAddForm(false);
-        setEditingRoomType(null);
+      setPendingStatusChange(null);
+      setShowAddForm(false);
+      setEditingRoomType(null);
 
     } finally {
       setChangingStatusId(null);
     }
   }
 
-    function openAdd() {
+  function openAdd() {
     setEditingRoomType(null);
     setShowAddForm(true);
     setError("");
     setSuccess("");
-    }
+  }
 
-    function openEdit(roomType: AdminRoomType) {
+  function openEdit(roomType: AdminRoomType) {
     setShowAddForm(false);
     setEditingRoomType(roomType);
     setError("");
     setSuccess("");
-    }
+  }
 
-    function handleSaved() {
+  function handleSaved() {
     setSuccess(
-        editingRoomType
-        ? "Room type updated successfully."
-        : "Room type created successfully."
+      editingRoomType
+      ? "Room type updated successfully."
+      : "Room type created successfully."
     );
 
     setShowAddForm(false);
     setEditingRoomType(null);
     setReloadKey((value) => value + 1);
-    }
+  }
+
+  function closeRoomTypeForm() {
+    if (roomTypeFormSaving) return;
+    setShowAddForm(false);
+    setEditingRoomType(null);
+  }
 
   return (
     <main className={styles.page}>
@@ -263,16 +270,26 @@ export default function AdminRoomTypesPage() {
       )}
 
       {(showAddForm || editingRoomType) && (
-        <AddRoomTypeForm
+        <AdminModal
+          title={editingRoomType ? "Edit Room Type" : "Add Room Type"}
+          subtitle={
+            editingRoomType
+              ? `Update details for ${editingRoomType.name}.`
+              : "Configure a room category, pricing, and amenities."
+          }
+          size="large"
+          canClose={!roomTypeFormSaving}
+          onClose={closeRoomTypeForm}
+        >
+          <AddRoomTypeForm
             key={editingRoomType?.id ?? "new-room-type"}
             roomType={editingRoomType ?? undefined}
-            onCancel={() => {
-            setShowAddForm(false);
-            setEditingRoomType(null);
-            }}
+            onCancel={closeRoomTypeForm}
+            onSavingChange={setRoomTypeFormSaving}
             onSaved={handleSaved}
-        />
-        )}
+          />
+        </AdminModal>
+      )}
 
       {loading && (
         <p role="status" className={styles.message}>
