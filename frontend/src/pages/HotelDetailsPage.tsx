@@ -197,28 +197,20 @@ export default function HotelDetailsPage() {
 
                 <section className={styles.section}>
                   <h2>Hotel Policies</h2>
-                  <p>
-                    {branch.policies.length === 0
-                      ? "Hotel policies have not been published yet."
-                      : "Hotel policies are available."}
-                  </p>
+
+                  {branch.policies.length > 0 ? (
+                    <ul className={styles.amenities}>
+                      {branch.policies.map((policy, index) => (
+                        <li key={`${index}-${policy}`}>
+                          {policy}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>Hotel policies have not been published yet.</p>
+                  )}
                 </section>
               </div>
-
-              <aside className={styles.bookingPanel}>
-                <h2>Plan Your Stay</h2>
-
-                <p>
-                  Choose your dates to explore available
-                  rooms and rates.
-                </p>
-                <a
-                  href="#availability"
-                  className={styles.bookingButton}
-                >
-                  Check Availability
-                </a>
-              </aside>
             </div>
 
             
