@@ -3,6 +3,11 @@ import { useEffect, useState, type FormEvent } from "react";
 import { apiRequest } from "../../lib/api";
 import styles from "./AddRoomTypeForm.module.css";
 
+import FormFieldError from "./FormFieldError";
+
+import { useZodForm } from "../../hooks/useZodForm";
+import { roomTypeSchema } from "../../schemas/roomTypeSchema";
+
 export type EditableRoomType = {
   id: string;
   branchId: string;
@@ -75,6 +80,13 @@ export default function AddRoomTypeForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const {
+    fieldErrors,
+    setFieldErrors,
+    validate,
+    clearFieldError,
+  } = useZodForm(roomTypeSchema);
+
   useEffect(() => {
     let active = true;
 
@@ -131,63 +143,39 @@ export default function AddRoomTypeForm({
 
     setError("");
 
-    const guests = Number(maxGuests);
-    const price = Number(basePrice);
-    const normalizedCurrency = currency.trim().toUpperCase();
     const imageList = splitLines(images);
+    const amenityList = splitLines(amenities);
 
-    if (!branchId) {
-      setError("Please select a hotel branch.");
+    const validated = validate({
+      branchId,
+      name,
+      description,
+      maxGuests,
+      basePrice,
+      currency,
+      images: imageList,
+      amenities: amenityList,
+    });
+
+    if (!validated) {
       return;
     }
 
     if (!selectedBranch?.isActive) {
-      setError("The selected hotel branch must be active.");
-      return;
-    }
-
-    if (!name.trim()) {
-      setError("Room type name is required.");
-      return;
-    }
-
-    if (!Number.isInteger(guests) || guests <= 0) {
-      setError("Maximum guests must be a positive whole number.");
-      return;
-    }
-
-    if (!Number.isFinite(price) || price <= 0) {
-      setError("Nightly price must be greater than zero.");
-      return;
-    }
-
-    if (!/^[A-Z]{3}$/.test(normalizedCurrency)) {
-      setError("Currency must be a three-letter code.");
-      return;
-    }
-
-    if (
-      imageList.some((image) => {
-        try {
-          const url = new URL(image);
-          return !["http:", "https:"].includes(url.protocol);
-        } catch {
-          return true;
-        }
-      })
-    ) {
-      setError("Every image must have a valid HTTP or HTTPS URL.");
+      setFieldErrors({
+        branchId: "The selected hotel branch must be active.",
+      });
       return;
     }
 
     const payload = {
-      name: name.trim(),
-      description: description.trim(),
-      maxGuests: guests,
-      basePrice: price,
-      currency: normalizedCurrency,
-      images: imageList,
-      amenities: splitLines(amenities),
+      name: validated.name,
+      description: validated.description,
+      maxGuests: validated.maxGuests,
+      basePrice: validated.basePrice,
+      currency: validated.currency,
+      images: validated.images,
+      amenities: validated.amenities,
     };
 
     try {
@@ -225,17 +213,6 @@ export default function AddRoomTypeForm({
 
   return (
     <section className={styles.formCard}>
-      <div className={styles.formHeader}>
-        <div>
-          <h2>
-            {isEditing ? "Edit Room Type" : "Add Room Type"}
-          </h2>
-          <p>
-            Configure room category details and nightly pricing.
-          </p>
-        </div>
-      </div>
-
       {branchError && (
         <p role="alert" className={styles.error}>
           {branchError}
@@ -248,17 +225,23 @@ export default function AddRoomTypeForm({
         </p>
       )}
 
-      <form onSubmit={(event) => void handleSubmit(event)}>
+      <form noValidate onSubmit={(event) => void handleSubmit(event)}>
         <div className={styles.formGrid}>
           <label className={styles.field}>
             <span>Hotel Branch *</span>
+
             <select
               value={branchId}
-              onChange={(event) =>
-                setBranchId(event.target.value)
-              }
+              onChange={(event) => {
+                setBranchId(event.target.value);
+                clearFieldError("branchId");
+              }}
               disabled={isEditing || loadingBranches || saving}
               required
+              aria-invalid={Boolean(fieldErrors.branchId)}
+              aria-describedby={
+                fieldErrors.branchId ? "room-type-branch-error" : undefined
+              }
             >
               <option value="">Select a branch</option>
 
@@ -276,62 +259,112 @@ export default function AddRoomTypeForm({
                   </option>
                 )}
             </select>
+
+            <FormFieldError
+              id="room-type-branch-error"
+              message={fieldErrors.branchId}
+            />
           </label>
 
           <label className={styles.field}>
             <span>Room Type Name *</span>
+
             <input
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value);
+                clearFieldError("name");
+              }}
               maxLength={150}
               required
               disabled={saving}
               placeholder="e.g. Deluxe King Room"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={
+                fieldErrors.name ? "room-type-name-error" : undefined
+              }
+            />
+
+            <FormFieldError
+              id="room-type-name-error"
+              message={fieldErrors.name}
             />
           </label>
 
           <label className={styles.field}>
             <span>Maximum Guests *</span>
+
             <input
-              type="number"
-              min="1"
-              step="1"
+              type="text"
+              inputMode="numeric"
               value={maxGuests}
-              onChange={(event) =>
-                setMaxGuests(event.target.value)
-              }
+              onChange={(event) => {
+                setMaxGuests(event.target.value);
+                clearFieldError("maxGuests");
+              }}
               required
               disabled={saving}
+              placeholder="e.g. 2"
+              aria-invalid={Boolean(fieldErrors.maxGuests)}
+              aria-describedby={
+                fieldErrors.maxGuests ? "room-type-guests-error" : undefined
+              }
+            />
+
+            <FormFieldError
+              id="room-type-guests-error"
+              message={fieldErrors.maxGuests}
             />
           </label>
 
           <label className={styles.field}>
             <span>Base Price / Night *</span>
+
             <input
-              type="number"
-              min="0.01"
-              step="0.01"
+              type="text"
+              inputMode="decimal"
               value={basePrice}
-              onChange={(event) =>
-                setBasePrice(event.target.value)
-              }
+              onChange={(event) => {
+                setBasePrice(event.target.value);
+                clearFieldError("basePrice");
+              }}
               required
               disabled={saving}
               placeholder="e.g. 1250.00"
+              aria-invalid={Boolean(fieldErrors.basePrice)}
+              aria-describedby={
+                fieldErrors.basePrice ? "room-type-price-error" : undefined
+              }
+            />
+
+            <FormFieldError
+              id="room-type-price-error"
+              message={fieldErrors.basePrice}
             />
           </label>
 
           <label className={styles.field}>
             <span>Currency *</span>
+
             <input
               value={currency}
-              onChange={(event) =>
-                setCurrency(event.target.value)
-              }
+              onChange={(event) => {
+                setCurrency(event.target.value);
+                clearFieldError("currency");
+              }}
               maxLength={3}
               required
               disabled={saving}
               placeholder="ZAR"
+              aria-invalid={Boolean(fieldErrors.currency)}
+              aria-describedby={
+                fieldErrors.currency ? "room-type-currency-error" : undefined
+              }
+            />
+
+            <FormFieldError
+              id="room-type-currency-error"
+              message={fieldErrors.currency}
             />
           </label>
 
@@ -364,16 +397,28 @@ export default function AddRoomTypeForm({
 
           <label className={`${styles.field} ${styles.fullWidth}`}>
             <span>Image URLs</span>
+
             <textarea
               value={images}
-              onChange={(event) =>
-                setImages(event.target.value)
-              }
+              onChange={(event) => {
+                setImages(event.target.value);
+                clearFieldError("images");
+              }}
               rows={4}
               disabled={saving}
-              placeholder={"https://example.com/room-1.jpg"}
+              placeholder="https://example.com/room-1.jpg"
+              aria-invalid={Boolean(fieldErrors.images)}
+              aria-describedby={
+                fieldErrors.images ? "room-type-images-error" : undefined
+              }
             />
+
             <small>Enter one image URL per line.</small>
+
+            <FormFieldError
+              id="room-type-images-error"
+              message={fieldErrors.images}
+            />
           </label>
         </div>
 
