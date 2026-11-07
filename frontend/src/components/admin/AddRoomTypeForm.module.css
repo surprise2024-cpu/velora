@@ -75,7 +75,7 @@
   cursor: not-allowed;
 }
 
-.field small {
+.field small:not([role="alert"]) {
   color: #64748b;
   font-size: 11px;
 }
