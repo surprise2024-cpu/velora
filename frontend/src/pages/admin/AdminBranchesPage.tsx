@@ -31,6 +31,7 @@ export default function AdminBranchesPage() {
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingBranch, setEditingBranch] = useState<AdminBranch | null>(null);
+  const [branchFormSaving, setBranchFormSaving] = useState(false);
 
   const [pendingStatusChange, setPendingStatusChange] = useState<{
     branch: AdminBranch;
@@ -101,16 +102,25 @@ export default function AdminBranchesPage() {
     setReloadKey((value) => value + 1);
   }
 
+  function closeBranchForm() {
+    if (branchFormSaving) return;
+
+    setShowAddForm(false);
+    setEditingBranch(null);
+  }
+
   function openEdit(branch: AdminBranch) {
     setShowAddForm(false);
     setEditingBranch(branch);
     setSuccess("");
+    setBranchFormSaving(false);
   }
 
   function openAdd() {
     setEditingBranch(null);
     setShowAddForm(true);
     setSuccess("");
+    setBranchFormSaving(false);
   }
 
   const activeBranches = branches.filter(
@@ -222,10 +232,8 @@ async function handleBranchStatusChange() {
               : "Create a new Velora hotel location."
           }
           size="medium"
-          onClose={() => {
-            setShowAddForm(false);
-            setEditingBranch(null);
-          }}
+          onClose={closeBranchForm}
+          canClose={!branchFormSaving}
         >
           <AddBranchForm
             key={selectedFormBranch?.id ?? "new-branch"}
@@ -235,10 +243,8 @@ async function handleBranchStatusChange() {
               ""
             }
             branch={selectedFormBranch ?? undefined}
-            onCancel={() => {
-              setShowAddForm(false);
-              setEditingBranch(null);
-            }}
+            onCancel={closeBranchForm}
+            onSavingChange={setBranchFormSaving}
             onSaved={handleSaved}
           />
         </AdminModal>
@@ -250,7 +256,11 @@ async function handleBranchStatusChange() {
           subtitle={selectedImageBranch.name}
           size="large"
           canClose={!imageUploading}
-          onClose={() => setImageBranchId(null)} 
+          onClose={() => {
+            if (!imageUploading) {
+              setImageBranchId(null);
+            }
+          }}
         >
           <AdminImageManager
             key={selectedImageBranch.id}
