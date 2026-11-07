@@ -106,12 +106,15 @@ router.get("/:id/availability", async (req, res) => {
     const availability = roomTypes.map((roomType) => ({
       roomTypeId: roomType.id,
       name: roomType.name,
+      description: roomType.description,
       maxGuests: roomType.maxGuests,
       basePrice: roomType.basePrice,
       currency: roomType.currency,
       availableRooms: roomType.rooms.length,
       images: roomType.images,
+      amenities: roomType.amenities,
     }));
+
 
     return res.status(200).json({
       success: true,
