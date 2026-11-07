@@ -6,6 +6,7 @@ import AddRoomForm, {
   type EditableRoom,
 } from "../../components/admin/AddRoomForm";
 import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
+import AdminModal from "../../components/admin/AdminModal";
 
 type AdminRoom = {
   id: string;
@@ -53,7 +54,9 @@ export default function AdminRoomsPage() {
     action: "activate" | "deactivate";
   } | null>(null);
 
-const [statusSaving, setStatusSaving] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
+
+  const [roomFormSaving, setRoomFormSaving] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -159,25 +162,32 @@ const [statusSaving, setStatusSaving] = useState(false);
     }
   }
 
-    function openAddForm() {
+  function openAddForm() {
+    setRoomFormSaving(false);
     setEditingRoom(null);
     setShowAddForm(true);
-    }
+  }
 
-    function openEditForm(room: AdminRoom) {
+  function openEditForm(room: AdminRoom) {
+    setRoomFormSaving(false);
     setEditingRoom(room);
     setShowAddForm(true);
-    }
+  }
 
-    function closeRoomForm() {
+  function closeRoomForm() {
+    if (roomFormSaving) return;
+
     setEditingRoom(null);
     setShowAddForm(false);
-    }
+  }
 
-    function handleRoomSaved() {
-    closeRoomForm();
+  function handleRoomSaved() {
+    // A successful save is allowed to close the modal.
+    setEditingRoom(null);
+    setShowAddForm(false);
+    setRoomFormSaving(false);
     setReloadKey((value) => value + 1);
-    }
+  }
 
     
 async function handleRoomStatusChange() {
@@ -429,49 +439,61 @@ async function handleRoomStatusChange() {
       )}
 
       {showAddForm && (
-        <AddRoomForm
+        <AdminModal
+          title={editingRoom ? "Edit Room" : "Add Room"}
+          subtitle={
+            editingRoom
+              ? "Update this room's number or floor."
+              : "Create a physical room within a hotel branch."
+          }
+          size="medium"
+          onClose={closeRoomForm}
+          canClose={!roomFormSaving}
+        >
+          <AddRoomForm
             key={editingRoom?.id ?? "new-room"}
             room={editingRoom ?? undefined}
             onCancel={closeRoomForm}
             onSaved={handleRoomSaved}
-        />
-        )}
-
-                
-        {pendingStatusChange && (
-          <AdminConfirmModal
-            title={
-              pendingStatusChange.action === "activate"
-                ? "Activate Room"
-                : "Deactivate Room"
-            }
-            itemName={
-              `Room ${pendingStatusChange.room.roomNumber}`
-            }
-            description={
-              pendingStatusChange.action === "activate"
-                ? "This room will become active and may be available for future bookings."
-                : "This room will become inactive and unavailable for new bookings. Rooms with protected future reservations cannot be deactivated."
-            }
-            notice={
-              pendingStatusChange.action === "deactivate"
-                ? "Existing protected future reservations will be checked before this action is allowed."
-                : undefined
-            }
-            confirmLabel={
-              pendingStatusChange.action === "activate"
-                ? "Activate Room"
-                : "Deactivate Room"
-            }
-            loading={statusSaving}
-            onConfirm={() => void handleRoomStatusChange()}
-            onCancel={() => {
-              if (!statusSaving) {
-                setPendingStatusChange(null);
-              }
-            }}
+            onSavingChange={setRoomFormSaving}
           />
-        )}
+        </AdminModal>
+      )}
+                
+      {pendingStatusChange && (
+        <AdminConfirmModal
+          title={
+            pendingStatusChange.action === "activate"
+              ? "Activate Room"
+              : "Deactivate Room"
+          }
+          itemName={
+            `Room ${pendingStatusChange.room.roomNumber}`
+          }
+          description={
+            pendingStatusChange.action === "activate"
+              ? "This room will become active and may be available for future bookings."
+              : "This room will become inactive and unavailable for new bookings. Rooms with protected future reservations cannot be deactivated."
+          }
+          notice={
+            pendingStatusChange.action === "deactivate"
+              ? "Existing protected future reservations will be checked before this action is allowed."
+              : undefined
+          }
+          confirmLabel={
+            pendingStatusChange.action === "activate"
+              ? "Activate Room"
+              : "Deactivate Room"
+          }
+          loading={statusSaving}
+          onConfirm={() => void handleRoomStatusChange()}
+          onCancel={() => {
+            if (!statusSaving) {
+              setPendingStatusChange(null);
+            }
+          }}
+        />
+      )}
 
     </main>
   );
