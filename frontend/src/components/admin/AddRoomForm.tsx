@@ -3,6 +3,10 @@ import { useEffect, useState, type FormEvent } from "react";
 import { apiRequest } from "../../lib/api";
 import styles from "./AddRoomForm.module.css";
 
+import { useZodForm } from "../../hooks/useZodForm";
+import { roomSchema } from "../../schemas/roomSchema";
+import FormFieldError from "./FormFieldError";
+
 export type EditableRoom = {
   id: string;
   branchId: string;
@@ -37,12 +41,14 @@ type AddRoomFormProps = {
   room?: EditableRoom;
   onCancel: () => void;
   onSaved: () => void;
+  onSavingChange?: (saving: boolean) => void;
 };
 
 export default function AddRoomForm({
   room,
   onCancel,
   onSaved,
+  onSavingChange,
 }: AddRoomFormProps) {
   const editing = Boolean(room);
 
@@ -64,7 +70,19 @@ export default function AddRoomForm({
 
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    onSavingChange?.(saving);
+  }, [saving, onSavingChange]);
+
   const [error, setError] = useState("");
+
+  const {
+    fieldErrors,
+    setFieldErrors,
+    validate,
+    clearFieldError,
+  } = useZodForm(roomSchema);
 
   useEffect(() => {
     let active = true;
@@ -134,46 +152,43 @@ export default function AddRoomForm({
     (type) => type.id === roomTypeId
   );
 
-  const canSave =
-    !loadingOptions &&
-    !saving &&
-    Boolean(selectedBranch?.isActive) &&
-    Boolean(
-      selectedRoomType?.isActive &&
-      selectedRoomType.branchId === branchId
-    );
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (saving || loadingOptions) return;
+
     setError("");
 
-    if (!canSave) {
-      setError("Select an active branch and room type.");
+    const validated = validate({
+      branchId,
+      roomTypeId,
+      roomNumber,
+      floor,
+    });
+
+    if (!validated) return;
+
+    if (!selectedBranch?.isActive) {
+      setFieldErrors({
+        branchId: "Please select an active hotel branch.",
+      });
       return;
     }
 
-    const cleanedRoomNumber = roomNumber.trim();
-
-    if (!cleanedRoomNumber || cleanedRoomNumber.length > 20) {
-      setError("Room number must contain 1 to 20 characters.");
+    if (
+      !selectedRoomType?.isActive ||
+      selectedRoomType.branchId !== validated.branchId
+    ) {
+      setFieldErrors({
+        roomTypeId: "Please select an active room type for this branch.",
+      });
       return;
-    }
-
-    let parsedFloor: number | undefined;
-
-    if (floor.trim() !== "") {
-      parsedFloor = Number(floor);
-
-      if (!Number.isSafeInteger(parsedFloor)) {
-        setError("Floor must be a valid whole number.");
-        return;
-      }
     }
 
     const payload = {
-      roomNumber: cleanedRoomNumber,
-      ...(parsedFloor !== undefined
-        ? { floor: parsedFloor }
+      roomNumber: validated.roomNumber,
+      ...(validated.floor !== undefined
+        ? { floor: validated.floor }
         : {}),
     };
 
@@ -190,8 +205,8 @@ export default function AddRoomForm({
           method: "POST",
           body: JSON.stringify({
             ...payload,
-            branchId,
-            roomTypeId,
+            branchId: validated.branchId,
+            roomTypeId: validated.roomTypeId,
           }),
         });
       }
@@ -210,27 +225,6 @@ export default function AddRoomForm({
 
   return (
     <section className={styles.formCard}>
-      <div className={styles.formHeader}>
-        <div>
-          <h2>{editing ? "Edit Room" : "Add Physical Room"}</h2>
-          <p>
-            {editing
-              ? "Update this room's number or floor."
-              : "Create a physical room within a hotel branch."}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className={styles.closeButton}
-          onClick={onCancel}
-          disabled={saving}
-          aria-label="Close room form"
-        >
-          ×
-        </button>
-      </div>
-
       {error && (
         <p className={styles.error} role="alert">
           {error}
@@ -242,18 +236,25 @@ export default function AddRoomForm({
           Loading branches and room types...
         </p>
       ) : (
-        <form onSubmit={(event) => void handleSubmit(event)}>
+        <form noValidate onSubmit={(event) => void handleSubmit(event)}>
           <div className={styles.formGrid}>
             <label className={styles.field}>
               <span>Hotel Branch *</span>
+
               <select
                 value={branchId}
                 disabled={editing || saving}
                 onChange={(event) => {
                   setBranchId(event.target.value);
                   setRoomTypeId("");
+                  clearFieldError("branchId");
+                  clearFieldError("roomTypeId");
                 }}
                 required
+                aria-invalid={Boolean(fieldErrors.branchId)}
+                aria-describedby={
+                  fieldErrors.branchId ? "room-branch-error" : undefined
+                }
               >
                 <option value="">Select a branch</option>
 
@@ -263,17 +264,28 @@ export default function AddRoomForm({
                   </option>
                 ))}
               </select>
+
+              <FormFieldError
+                id="room-branch-error"
+                message={fieldErrors.branchId}
+              />
             </label>
 
             <label className={styles.field}>
               <span>Room Type *</span>
+
               <select
                 value={roomTypeId}
                 disabled={editing || saving || !branchId}
-                onChange={(event) =>
-                  setRoomTypeId(event.target.value)
-                }
+                onChange={(event) => {
+                  setRoomTypeId(event.target.value);
+                  clearFieldError("roomTypeId");
+                }}
                 required
+                aria-invalid={Boolean(fieldErrors.roomTypeId)}
+                aria-describedby={
+                  fieldErrors.roomTypeId ? "room-type-error" : undefined
+                }
               >
                 <option value="">Select a room type</option>
 
@@ -284,32 +296,61 @@ export default function AddRoomForm({
                   </option>
                 ))}
               </select>
+
+              <FormFieldError
+                id="room-type-error"
+                message={fieldErrors.roomTypeId}
+              />
             </label>
 
             <label className={styles.field}>
               <span>Room Number *</span>
+
               <input
                 type="text"
                 value={roomNumber}
                 maxLength={20}
-                onChange={(event) =>
-                  setRoomNumber(event.target.value)
-                }
+                onChange={(event) => {
+                  setRoomNumber(event.target.value);
+                  clearFieldError("roomNumber");
+                }}
                 placeholder="e.g. TEST-101"
                 required
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.roomNumber)}
+                aria-describedby={
+                  fieldErrors.roomNumber ? "room-number-error" : undefined
+                }
+              />
+
+              <FormFieldError
+                id="room-number-error"
+                message={fieldErrors.roomNumber}
               />
             </label>
 
             <label className={styles.field}>
               <span>Floor</span>
+
               <input
-                type="number"
-                step="1"
+                type="text"
+                inputMode="numeric"
                 value={floor}
-                onChange={(event) => setFloor(event.target.value)}
+                onChange={(event) => {
+                  setFloor(event.target.value);
+                  clearFieldError("floor");
+                }}
                 placeholder="e.g. 1"
                 disabled={saving}
+                aria-invalid={Boolean(fieldErrors.floor)}
+                aria-describedby={
+                  fieldErrors.floor ? "room-floor-error" : undefined
+                }
+              />
+
+              <FormFieldError
+                id="room-floor-error"
+                message={fieldErrors.floor}
               />
             </label>
           </div>
@@ -334,7 +375,7 @@ export default function AddRoomForm({
             <button
               type="submit"
               className={styles.saveButton}
-              disabled={!canSave}
+              disabled={saving || loadingOptions}
             >
               {saving
                 ? "Saving..."
