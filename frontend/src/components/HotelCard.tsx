@@ -14,7 +14,7 @@ export type HotelBranch = {
   starRating: number | null;
   amenities: string[];
   images: string[];
-  policies: unknown[];
+  policies: string[];
   isActive: boolean;
 };
 
