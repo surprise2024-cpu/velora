@@ -1,7 +1,11 @@
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { apiRequest } from "../../lib/api";
 import styles from "./AddBranchForm.module.css";
+
+import { useZodForm } from "../../hooks/useZodForm";
+import { branchSchema } from "../../schemas/branchSchema";
+import FormFieldError from "./FormFieldError";
 
 export type EditableBranch = {
   id: string;
@@ -23,6 +27,7 @@ type Props = {
   branch?: EditableBranch;
   onSaved: () => void;
   onCancel: () => void;
+  onSavingChange?: (saving: boolean) => void;
 };
 
 type ApiResponse = {
@@ -58,18 +63,12 @@ function createInitialForm(branch?: EditableBranch): BranchForm {
   };
 }
 
-function splitLines(value: string): string[] {
-  return value
-    .split("\n")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
 export default function AddBranchForm({
   brandId,
   branch,
   onSaved,
   onCancel,
+  onSavingChange,
 }: Props) {
   const isEditing = Boolean(branch);
 
@@ -78,6 +77,17 @@ export default function AddBranchForm({
   );
 
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    onSavingChange?.(saving);
+  }, [saving, onSavingChange]);
+
+  const {
+    fieldErrors,
+    validate,
+    clearFieldError,
+  } = useZodForm(branchSchema);
+
   const [error, setError] = useState("");
 
   function updateField(
@@ -88,6 +98,8 @@ export default function AddBranchForm({
       ...current,
       [field]: value,
     }));
+
+    clearFieldError(field);
   }
 
   async function handleSubmit(
@@ -99,34 +111,12 @@ export default function AddBranchForm({
 
     setError("");
 
-    const images = splitLines(form.images);
+    const validated = validate(form);
 
-    for (const image of images) {
-      try {
-        const url = new URL(image);
-
-        if (!["http:", "https:"].includes(url.protocol)) {
-          throw new Error("Invalid protocol");
-        }
-      } catch {
-        setError(
-          "Every image must be a valid HTTP or HTTPS URL."
-        );
-        return;
-      }
-    }
+    if (!validated) return;
 
     const payload = {
-      name: form.name.trim(),
-      description: form.description.trim(),
-      address: form.address.trim(),
-      city: form.city.trim(),
-      province: form.province.trim(),
-      country: form.country.trim(),
-      starRating: Number(form.starRating),
-      images,
-      amenities: splitLines(form.amenities),
-      policies: splitLines(form.policies),
+      ...validated,
       ...(!isEditing && brandId ? { brandId } : {}),
     };
 
@@ -168,31 +158,7 @@ export default function AddBranchForm({
 
   return (
     <section className={styles.formPanel}>
-      <header className={styles.header}>
-        <div>
-          <h2>
-            {isEditing
-              ? "Edit Hotel Branch"
-              : "Add Hotel Branch"}
-          </h2>
-          <p>
-            {isEditing
-              ? "Update this Velora hotel's details."
-              : "Register a new Velora accommodation."}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={saving}
-          className={styles.closeButton}
-        >
-          Close
-        </button>
-      </header>
-
-      <form onSubmit={handleSubmit} className={styles.form}>
+      <form noValidate onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.grid}>
           <label>
             Branch Name *
@@ -203,6 +169,10 @@ export default function AddBranchForm({
               onChange={(event) =>
                 updateField("name", event.target.value)
               }
+            />
+            <FormFieldError
+              id="branch-name-error"
+              message={fieldErrors.name}
             />
           </label>
 
@@ -215,6 +185,10 @@ export default function AddBranchForm({
                 updateField("city", event.target.value)
               }
             />
+            <FormFieldError
+              id="branch-name-error"
+              message={fieldErrors.city}
+            />
           </label>
 
           <label>
@@ -225,6 +199,10 @@ export default function AddBranchForm({
               onChange={(event) =>
                 updateField("province", event.target.value)
               }
+            />
+            <FormFieldError
+              id="branch-name-error"
+              message={fieldErrors.province}
             />
           </label>
 
@@ -237,6 +215,10 @@ export default function AddBranchForm({
                 updateField("country", event.target.value)
               }
             />
+            <FormFieldError
+              id="branch-name-error"
+              message={fieldErrors.country}
+            />
           </label>
 
           <label>
@@ -247,6 +229,10 @@ export default function AddBranchForm({
               onChange={(event) =>
                 updateField("address", event.target.value)
               }
+            />
+            <FormFieldError
+              id="branch-name-error"
+              message={fieldErrors.name}
             />
           </label>
 
@@ -264,6 +250,10 @@ export default function AddBranchForm({
                 </option>
               ))}
             </select>
+            <FormFieldError
+              id="branch-name-error"
+              message={fieldErrors.starRating}
+            />
           </label>
         </div>
 
@@ -276,6 +266,10 @@ export default function AddBranchForm({
               updateField("description", event.target.value)
             }
           />
+          <FormFieldError
+            id="branch-name-error"
+            message={fieldErrors.description}
+          />
         </label>
 
         <label>
@@ -286,6 +280,10 @@ export default function AddBranchForm({
             onChange={(event) =>
               updateField("images", event.target.value)
             }
+          />
+          <FormFieldError
+            id="branch-name-error"
+            message={fieldErrors.images}
           />
         </label>
 
@@ -298,6 +296,10 @@ export default function AddBranchForm({
               updateField("amenities", event.target.value)
             }
           />
+          <FormFieldError
+            id="branch-name-error"
+            message={fieldErrors.amenities}
+          />
         </label>
 
         <label>
@@ -308,6 +310,10 @@ export default function AddBranchForm({
             onChange={(event) =>
               updateField("policies", event.target.value)
             }
+          />
+          <FormFieldError
+            id="branch-name-error"
+            message={fieldErrors.policies}
           />
         </label>
 
