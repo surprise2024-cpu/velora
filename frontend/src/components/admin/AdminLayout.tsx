@@ -5,37 +5,48 @@ import { useAuth } from "../../context/useAuth";
 import LogoutButton from "../LogoutButton";
 import styles from "./AdminLayout.module.css";
 
+import {
+  BedDouble,
+  Building2,
+  CalendarCheck,
+  CreditCard,
+  DoorOpen,
+  LayoutDashboard,
+  Menu,
+  X,
+} from "lucide-react";
+
 const navigation = [
   {
     label: "Dashboard",
     path: "/admin",
-    icon: "▦",
+    icon: LayoutDashboard,
     end: true,
   },
   {
     label: "Branches",
     path: "/admin/branches",
-    icon: "▥",
+    icon: Building2,
   },
   {
     label: "Room Types",
     path: "/admin/room-types",
-    icon: "▤",
+    icon: BedDouble,
   },
   {
     label: "Rooms",
     path: "/admin/rooms",
-    icon: "▣",
+    icon: DoorOpen,
   },
   {
     label: "Bookings",
     path: "/admin/bookings",
-    icon: "▦",
+    icon: CalendarCheck,
   },
   {
     label: "Payments",
     path: "/admin/payments",
-    icon: "▭",
+    icon: CreditCard,
   },
 ];
 
@@ -64,28 +75,32 @@ export default function AdminLayout() {
           className={styles["admin-navigation"]}
           aria-label="Admin sections"
         >
-          {navigation.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.end}
-              onClick={() => setMenuOpen(false)}
-              className={({ isActive }) =>
-                `${styles["admin-nav-link"]} ${
-                  isActive ? styles.active : ""
-                }`
-              }
-            >
-              <span
-                className={styles["admin-nav-icon"]}
-                aria-hidden="true"
-              >
-                {item.icon}
-              </span>
+          {navigation.map((item) => {
+            const Icon = item.icon;
 
-              <span>{item.label}</span>
-            </NavLink>
-          ))}
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.end}
+                onClick={() => setMenuOpen(false)}
+                className={({ isActive }) =>
+                  `${styles["admin-nav-link"]} ${
+                    isActive ? styles.active : ""
+                  }`
+                }
+              >
+                <Icon
+                  className={styles["admin-nav-icon"]}
+                  size={19}
+                  strokeWidth={1.8}
+                  aria-hidden="true"
+                />
+
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* ADMIN PROFILE AND LOGOUT */}
@@ -98,7 +113,7 @@ export default function AdminLayout() {
             <span>Property Management</span>
           </div>
 
-          <LogoutButton />
+          <LogoutButton variant="admin" />
         </div>
       </aside>
 
@@ -113,7 +128,17 @@ export default function AdminLayout() {
             aria-expanded={menuOpen}
             aria-controls="admin-sidebar"
           >
-            {menuOpen ? "Close menu" : "☰ Menu"}
+            {menuOpen ? (
+              <>
+                <X size={18} strokeWidth={2} aria-hidden="true" />
+                Close menu
+              </>
+            ) : (
+              <>
+                <Menu size={18} strokeWidth={2} aria-hidden="true" />
+                Menu
+              </>
+            )}
           </button>
 
           <span>Velora Management Console</span>
