@@ -6,6 +6,7 @@ import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
 import AddRoomTypeForm from "../../components/admin/AddRoomTypeForm";
 import AdminImageManager from "../../components/admin/AdminImageManager";
 import AdminModal from "../../components/admin/AdminModal";
+import { Plus } from "lucide-react";
 
 type AdminRoomType = {
   id: string;
@@ -254,12 +255,13 @@ export default function AdminRoomTypesPage() {
         </div>
 
         <button
-            type="button"
-            className={styles.addButton}
-            disabled={loading || changingStatusId !== null}
-            onClick={openAdd}
-            >
-            + Add Room Type
+          type="button"
+          className={styles.addButton}
+          disabled={loading || changingStatusId !== null}
+          onClick={openAdd}
+        >
+          <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+          Add Room Type
         </button>
       </header>
 
