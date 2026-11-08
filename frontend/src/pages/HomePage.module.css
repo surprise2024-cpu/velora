@@ -1,101 +1,203 @@
 
 .page {
   min-height: 100vh;
-  background: #faf9f6;
+  background: #f8f6f0;
 }
 
 .hero {
-  min-height: 520px;
-  padding: 80px max(32px, calc((100vw - 1216px) / 2));
-  background: linear-gradient(120deg, #172e29, #38574b);
-  color: #ffffff;
+  position: relative;
+  min-height: 620px;
   display: flex;
   align-items: center;
+  padding: 90px max(32px, calc((100vw - 1216px) / 2));
+  color: #ffffff;
+  background-color: #172e29;
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(10, 29, 25, 0.88) 0%,
+      rgba(10, 29, 25, 0.65) 42%,
+      rgba(10, 29, 25, 0.2) 100%
+    ),
+    url("../assets/velora-home-hero.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .heroContent {
-  max-width: 680px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1100px;
 }
 
 .eyebrow {
   margin: 0;
+  color: #e1b775;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 3px;
-  color: #c49b63;
 }
 
 .heroTitle {
+  max-width: 780px;
   margin: 22px 0;
-  font-size: clamp(40px, 5vw, 70px);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 5.2vw, 76px);
+  font-weight: 700;
   line-height: 1.12;
-  letter-spacing: -2px;
+  letter-spacing: -1.5px;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
 }
 
 .heroDescription {
-  max-width: 520px;
-  margin: 0 0 30px;
-  font-size: 17px;
-  line-height: 1.8;
-  color: #e2e8e3;
+  max-width: 590px;
+  margin: 0 0 42px;
+  color: #f3f2ed;
+  font-size: 18px;
+  line-height: 1.7;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
-.heroButton {
-  display: inline-block;
-  padding: 15px 25px;
-  border-radius: 8px;
+.searchBar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 780px;
+  min-height: 64px;
+  margin: 0 auto;
+  padding: 6px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+.searchInputGroup {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 16px;
+  padding: 0 20px;
+}
+
+.searchIcon {
+  flex-shrink: 0;
+  color: #a5aaa6;
+}
+
+.searchInput {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 16px 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #263b35;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.searchInput::placeholder {
+  color: #8b938d;
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid #ba9158;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+.searchButton {
+  flex-shrink: 0;
+  min-height: 60px;
+  padding: 0 38px;
+  border: none;
+  border-radius: 9px;
   background: #c49b63;
   color: #172e29;
-  text-decoration: none;
+  font-family: inherit;
+  font-size: 15px;
   font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.searchButton:hover {
+  background: #d8b27c;
+}
+
+.searchButton:focus-visible,
+.viewAllLink:focus-visible {
+  outline: 3px solid #c49b63;
+  outline-offset: 3px;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .hotels {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 88px 32px;
+  padding: 80px 32px 100px;
+  scroll-margin-top: 90px;
 }
 
 .sectionHeading {
   display: flex;
   justify-content: space-between;
-  align-items: end;
-  gap: 32px;
+  align-items: center;
+  gap: 24px;
   margin-bottom: 36px;
 }
 
 .sectionHeading h2 {
-  margin: 12px 0;
-  font-size: clamp(30px, 4vw, 44px);
-  color: #222a25;
+  margin: 0;
+  color: #263b35;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 3.5vw, 44px);
+  line-height: 1.2;
 }
 
-.sectionDescription {
+.viewAllLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: #9c7444;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.viewAllLink:hover {
+  text-decoration: underline;
+}
+
+.resultsDescription {
+  margin: -16px 0 30px;
   color: #68716b;
-  line-height: 1.7;
-}
-
-.searchField {
-  min-width: 280px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.searchField input {
-  padding: 14px;
-  border: 1px solid #d8ded8;
-  border-radius: 8px;
-  background: #ffffff;
-  outline-offset: 3px;
+  font-size: 15px;
 }
 
 .hotelGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 26px;
 }
 
 .error {
@@ -118,23 +220,73 @@
   color: #c9d5cc;
 }
 
+@media (max-width: 1024px) {
+  .hero {
+    padding: 80px 40px;
+  }
+
+  .hotelGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .hero {
-    min-height: 460px;
-    padding: 64px 24px;
+    min-height: 580px;
+    padding: 70px 24px;
+    background-position: 60% center;
+  }
+
+  .heroTitle {
+    font-size: clamp(38px, 7vw, 58px);
+  }
+
+  .heroDescription {
+    font-size: 16px;
+  }
+
+  .searchBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .searchInputGroup {
+    min-height: 58px;
+    padding: 0 12px;
+  }
+
+  .searchButton {
+    width: 100%;
   }
 
   .hotels {
+    padding: 60px 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    min-height: 610px;
     padding: 60px 20px;
   }
 
-  .sectionHeading {
-    flex-direction: column;
-    align-items: stretch;
+  .heroTitle {
+    letter-spacing: -0.8px;
   }
 
-  .searchField {
-    min-width: 0;
+  .heroDescription {
+    margin-bottom: 30px;
+  }
+
+  .searchInput {
+    font-size: 14px;
+  }
+
+  .sectionHeading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .hotelGrid {
@@ -142,8 +294,8 @@
   }
 }
 
-@media (max-width: 420px) {
-  .heroTitle {
-    letter-spacing: -1px;
+@media (prefers-reduced-motion: reduce) {
+  .searchButton {
+    transition: none;
   }
 }
