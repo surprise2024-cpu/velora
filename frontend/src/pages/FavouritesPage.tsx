@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useFavourites } from "../context/useFavourites";
 import FavouriteButton from "../components/FavouriteButton";
 import styles from "./FavouritesPage.module.css";
+import { Heart, Star } from "lucide-react";
 
 export default function FavouritesPage() {
   const {
@@ -49,7 +50,12 @@ export default function FavouritesPage() {
 
       {!loading && !error && favourites.length === 0 && (
         <div className={styles.empty}>
-          <span className={styles.emptyIcon}>♡</span>
+          <Heart
+            className={styles.emptyIcon}
+            size={56}
+            strokeWidth={1.5}
+            aria-hidden="true"
+          />
           <h2>No favourites yet</h2>
           <p>
             Save hotels you love and they'll appear here.
@@ -88,22 +94,32 @@ export default function FavouritesPage() {
                   {favourite.branch.address}
                 </p>
 
-                <p className={styles.rating}>
-                  {"★".repeat(
-                    Math.max(
-                      0,
-                      Math.min(
-                        5,
-                        Math.floor(
-                          favourite.branch.starRating ?? 0
-                        )
-                      )
-                    )
-                  )}
-                  <span>
-                    {favourite.branch.starRating} star hotel
-                  </span>
-                </p>
+                {favourite.branch.starRating != null && (
+                  <div
+                    className={styles.rating}
+                    aria-label={`${favourite.branch.starRating} star hotel`}
+                  >
+                    <div className={styles.ratingStars} aria-hidden="true">
+                      {Array.from({
+                        length: Math.max(
+                          0,
+                          Math.min(5, Math.floor(favourite.branch.starRating))
+                        ),
+                      }).map((_, index) => (
+                        <Star
+                          key={index}
+                          size={16}
+                          strokeWidth={1.5}
+                          fill="currentColor"
+                        />
+                      ))}
+                    </div>
+
+                    <span>
+                      {favourite.branch.starRating} star hotel
+                    </span>
+                  </div>
+                )}
 
                 <Link
                   to={`/hotels/${favourite.branchId}`}
