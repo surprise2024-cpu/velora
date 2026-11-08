@@ -8,6 +8,13 @@ import styles from "./HotelDetailsPage.module.css";
 import RoomAvailability from "../components/RoomAvailability";
 import FavouriteButton from "../components/FavouriteButton";
 
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+} from "lucide-react";
+
 type BranchResponse = {
   success: boolean;
   data: HotelBranch;
@@ -78,7 +85,12 @@ export default function HotelDetailsPage() {
 
       <main className={styles.container}>
         <Link to="/" className={styles.backLink}>
-          ← Back to Hotels
+          <ArrowLeft
+            size={18}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+          Back to Hotels
         </Link>
 
         {loading && (
@@ -112,61 +124,105 @@ export default function HotelDetailsPage() {
 
                 {branch.starRating !== null && (
                   <span className={styles.rating}>
-                    ★ {branch.starRating} Star Hotel
+                    <Star
+                      size={17}
+                      strokeWidth={1.5}
+                      fill="currentColor"
+                      aria-hidden="true"
+                    />
+                    {branch.starRating} Star Hotel
                   </span>
                 )}
               </div>
             </header>
 
             {galleryImages.length > 0 ? (
-  <section
-    className={styles.gallery}
-    aria-label={`${branch.name} photo gallery`}
-  >
-    <div className={styles.mainImageContainer}>
-      <img
-        src={activeImage}
-        alt={`${branch.name} photograph ${selectedImageIndex + 1}`}
-        className={styles.mainImage}
-      />
+              <section
+                className={styles.gallery}
+                aria-label={`${branch.name} photo gallery`}
+              >
+                <div className={styles.mainImageContainer}>
+                  <img
+                    src={activeImage}
+                    alt={`${branch.name} photograph ${selectedImageIndex + 1}`}
+                    className={styles.mainImage}
+                  />
 
-      <span className={styles.imageCounter}>
-        {selectedImageIndex + 1} / {galleryImages.length}
-      </span>
-    </div>
+                  {galleryImages.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        className={`${styles.galleryArrow} ${styles.previous}`}
+                        onClick={() =>
+                          setSelectedImageIndex((current) =>
+                            (current - 1 + galleryImages.length) %
+                              galleryImages.length
+                          )
+                        }
+                        aria-label="Previous hotel photo"
+                      >
+                        <ChevronLeft
+                          size={24}
+                          strokeWidth={2.5}
+                          aria-hidden="true"
+                        />
+                      </button>
 
-    {galleryImages.length > 1 && (
-      <div className={styles.thumbnailGrid}>
-        {galleryImages.map((image, index) => (
-          <button
-            key={`${image}-${index}`}
-            type="button"
-            className={`${styles.thumbnailButton} ${
-              selectedImageIndex === index
-                ? styles.thumbnailActive
-                : ""
-            }`}
-            onClick={() => setSelectedImageIndex(index)}
-            aria-label={`View photograph ${index + 1}`}
-            aria-pressed={selectedImageIndex === index}
-          >
-            <img
-              src={image}
-              alt=""
-              className={styles.thumbnailImage}
-              loading="lazy"
-            />
-          </button>
-        ))}
-      </div>
-    )}
-  </section>
-) : (
-  <div className={styles.galleryPlaceholder}>
-    <strong>VELORA HOTELS</strong>
-    <span>Hotel photography coming soon</span>
-  </div>
-)}
+                      <button
+                        type="button"
+                        className={`${styles.galleryArrow} ${styles.next}`}
+                        onClick={() =>
+                          setSelectedImageIndex((current) =>
+                            (current + 1) % galleryImages.length
+                          )
+                        }
+                        aria-label="Next hotel photo"
+                      >
+                        <ChevronRight
+                          size={24}
+                          strokeWidth={2.5}
+                          aria-hidden="true"
+                        />
+                      </button>
+                    </>
+                  )}
+                  <span className={styles.imageCounter}>
+                    {selectedImageIndex + 1} / {galleryImages.length}
+                  </span>
+                </div>
+
+                {galleryImages.length > 1 && (
+                  <div className={styles.thumbnailGrid}>
+                    {galleryImages.map((image, index) => (
+                      <button
+                        key={`${image}-${index}`}
+                        type="button"
+                        className={`${styles.thumbnailButton} ${
+                          selectedImageIndex === index
+                            ? styles.thumbnailActive
+                            : ""
+                        }`}
+                        onClick={() => setSelectedImageIndex(index)}
+                        aria-label={`View photograph ${index + 1}`}
+                        aria-pressed={selectedImageIndex === index}
+                      >
+                        <img
+                          src={image}
+                          alt=""
+                          className={styles.thumbnailImage}
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </section>
+            ) : (
+              <div className={styles.galleryPlaceholder}>
+                <strong>VELORA HOTELS</strong>
+                <span>Hotel photography coming soon</span>
+              </div>
+            )}
 
             <div className={styles.contentGrid}>
               <div className={styles.mainContent}>
