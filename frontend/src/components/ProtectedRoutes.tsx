@@ -23,7 +23,7 @@ export default function ProtectedRoute({
   if (user.role !== allowedRole) {
     return (
       <Navigate
-        to={user.role === "ADMIN" ? "/admin" : "/account"}
+        to={user.role === "ADMIN" ? "/admin" : "/"}
         replace
       />
     );
