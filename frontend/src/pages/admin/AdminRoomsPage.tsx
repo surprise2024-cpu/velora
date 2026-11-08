@@ -7,6 +7,7 @@ import AddRoomForm, {
 } from "../../components/admin/AddRoomForm";
 import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
 import AdminModal from "../../components/admin/AdminModal";
+import { Plus } from "lucide-react";
 
 type AdminRoom = {
   id: string;
@@ -240,11 +241,12 @@ async function handleRoomStatusChange() {
         </div>
 
         <button
-            type="button"
-            className={styles.addButton}
-            onClick={openAddForm}
-            >
-            + Add Room
+          type="button"
+          className={styles.addButton}
+          onClick={openAddForm}
+        >
+          <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+          Add Room
         </button>
       </header>
 
