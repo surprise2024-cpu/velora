@@ -1,30 +1,96 @@
-
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
+import veloraLogo from "../assets/velora-logo.png";
 import styles from "./Navbar.module.css";
 
 export default function Navbar() {
   const { user } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const accountPath =
     user?.role === "ADMIN" ? "/admin" : "/account";
 
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Link to="/" className={styles.logo}>
-          VELORA<span>.</span>
+        <Link
+          to="/"
+          className={styles.logo}
+          aria-label="Velora Hotels home"
+          onClick={closeMenu}
+        >
+          <img
+            src={veloraLogo}
+            alt="Velora Hotels"
+            className={styles.logoImage}
+          />
         </Link>
 
-        <nav className={styles.navigation} aria-label="Main navigation">
-          <a href="/#hotels">Our Hotels</a>
+        <button
+          type="button"
+          className={styles.menuToggle}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          aria-controls="velora-main-navigation"
+          onClick={() => setMenuOpen((open) => !open)}
+        >
+          <span className={styles.menuIcon} aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+        </button>
+
+        <nav
+          id="velora-main-navigation"
+          className={`${styles.navigation} ${
+            menuOpen ? styles.navigationOpen : ""
+          }`}
+          aria-label="Main navigation"
+        >
+          <Link
+            to="/"
+            className={styles.navLink}
+            onClick={closeMenu}
+          >
+            Home
+          </Link>
+
+          <a
+            href="/#hotels"
+            className={styles.navLink}
+            onClick={closeMenu}
+          >
+            Our Hotels
+          </a>
+
+          <Link
+            to="/account/favourites"
+            className={styles.navLink}
+            onClick={closeMenu}
+          >
+            Favourites
+          </Link>
 
           {user ? (
-            <Link to={accountPath} className={styles.accountButton}>
+            <Link
+              to={accountPath}
+              className={styles.accountButton}
+              onClick={closeMenu}
+            >
               My Account
             </Link>
           ) : (
-            <Link to="/login" className={styles.accountButton}>
+            <Link
+              to="/login"
+              className={styles.accountButton}
+              onClick={closeMenu}
+            >
               Sign In
             </Link>
           )}
