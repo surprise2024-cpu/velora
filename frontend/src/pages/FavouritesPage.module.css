@@ -103,6 +103,12 @@
   color: #d2a34d;
 }
 
+.ratingStars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
 .rating span {
   color: #65746a;
   font-size: 12px;
@@ -141,7 +147,7 @@
 
 .emptyIcon {
   color: #779984;
-  font-size: 56px;
+  flex-shrink: 0;
 }
 
 .empty h2 {
