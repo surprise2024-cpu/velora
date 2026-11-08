@@ -73,10 +73,9 @@
 
 .admin-nav-icon {
   width: 20px;
+  height: 20px;
   flex-shrink: 0;
   color: #d7ad62;
-  font-size: 17px;
-  text-align: center;
 }
 
 .admin-sidebar-footer {
@@ -179,6 +178,8 @@
 
   .admin-menu-toggle {
     display: inline-flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 12px;
     border: 1px solid #d5dce4;
     border-radius: 6px;
