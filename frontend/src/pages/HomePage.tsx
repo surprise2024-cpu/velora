@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import HotelCard from "../components/HotelCard";
 import type { HotelBranch } from "../components/HotelCard";
 import styles from "./HomePage.module.css";
+import { ArrowRight, Search } from "lucide-react";
 
 type BranchResponse = {
   success: boolean;
@@ -113,25 +114,17 @@ export default function HomePage() {
               </label>
 
               <div className={styles.searchInputGroup}>
-                <svg
+                <Search
                   className={styles.searchIcon}
-                  width="26"
-                  height="26"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  size={26}
+                  strokeWidth={2}
                   aria-hidden="true"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
+                />
 
                 <input
                   id="hotel-search"
                   type="search"
+                  autoComplete="off"
                   value={search}
                   onChange={(event) =>
                     setSearch(event.target.value)
@@ -176,7 +169,11 @@ export default function HomePage() {
               }}
             >
               View all branches
-              <span aria-hidden="true">→</span>
+              <ArrowRight
+                size={17}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </button>
           </div>
 
