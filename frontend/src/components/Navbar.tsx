@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import veloraLogo from "../assets/velora-logo.png";
 import styles from "./Navbar.module.css";
+import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -39,11 +40,11 @@ export default function Navbar() {
           aria-controls="velora-main-navigation"
           onClick={() => setMenuOpen((open) => !open)}
         >
-          <span className={styles.menuIcon} aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
+          {menuOpen ? (
+            <X size={22} strokeWidth={2} aria-hidden="true" />
+          ) : (
+            <Menu size={22} strokeWidth={2} aria-hidden="true" />
+          )}
         </button>
 
         <nav
