@@ -8,6 +8,7 @@ import styles from "./AdminBranchesPage.module.css";
 import AdminConfirmModal from "../../components/admin/AdminConfirmModal";
 import AdminImageManager from "../../components/admin/AdminImageManager";
 import AdminModal from "../../components/admin/AdminModal";
+import { Plus } from "lucide-react";
 
 type AdminBranch = EditableBranch & {
   isActive: boolean;
@@ -209,7 +210,8 @@ async function handleBranchStatusChange() {
           disabled={loading}
           className={styles.addButton}
         >
-          + Add Branch
+          <Plus size={18} strokeWidth={2.5} aria-hidden="true" />
+          Add Branch
         </button>
       </header>
 
