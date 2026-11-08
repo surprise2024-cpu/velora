@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { apiRequest } from "../lib/api";
 import Navbar from "../components/Navbar";
 import HotelCard from "../components/HotelCard";
@@ -14,8 +13,11 @@ type BranchResponse = {
 export default function HomePage() {
   const [branches, setBranches] = useState<HotelBranch[]>([]);
   const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const hotelsRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -42,7 +44,7 @@ export default function HomePage() {
               ? err.message
               : "Unable to load hotels"
           );
-        } 
+        }
       } finally {
         if (active) {
           setLoading(false);
@@ -57,12 +59,24 @@ export default function HomePage() {
     };
   }, []);
 
-  const query = search.trim().toLowerCase();
+  const query = submittedSearch.trim().toLowerCase();
 
   const filteredBranches = branches.filter((branch) =>
-    [branch.name, branch.city, branch.province]
-      .some((value) => value.toLowerCase().includes(query))
+    [branch.name, branch.city, branch.province].some((value) =>
+      value.toLowerCase().includes(query)
+    )
   );
+
+  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setSubmittedSearch(search.trim());
+
+    hotelsRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   return (
     <div className={styles.page}>
@@ -86,40 +100,91 @@ export default function HomePage() {
               across our hotel destinations.
             </p>
 
-            <a href="#hotels" className={styles.heroButton}>
-              Explore Our Hotels
-            </a>
+            <form
+              className={styles.searchBar}
+              onSubmit={handleSearch}
+              role="search"
+            >
+              <label
+                htmlFor="hotel-search"
+                className={styles.visuallyHidden}
+              >
+                Search hotels by name or city
+              </label>
+
+              <div className={styles.searchInputGroup}>
+                <svg
+                  className={styles.searchIcon}
+                  width="26"
+                  height="26"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+
+                <input
+                  id="hotel-search"
+                  type="search"
+                  value={search}
+                  onChange={(event) =>
+                    setSearch(event.target.value)
+                  }
+                  placeholder="Search for a hotel, branch or city (e.g. Cape Town, Sandton, Umhlanga)"
+                  className={styles.searchInput}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className={styles.searchButton}
+              >
+                Search stays
+              </button>
+            </form>
           </div>
         </section>
 
-        <section id="hotels" className={styles.hotels}>
+        <section
+          id="hotels"
+          ref={hotelsRef}
+          className={styles.hotels}
+        >
           <div className={styles.sectionHeading}>
-            <div>
-              <p className={styles.eyebrow}>
-                OUR DESTINATIONS
-              </p>
+            <h2>
+              {query
+                ? "Search results"
+                : "Explore our branches"}
+            </h2>
 
-              <h2>Discover Velora</h2>
-
-              <p className={styles.sectionDescription}>
-                Explore our hotel branches and discover
-                your next destination.
-              </p>
-            </div>
-
-            <label className={styles.searchField}>
-              <span>Search destinations</span>
-
-              <input
-                type="search"
-                value={search}
-                onChange={(event) =>
-                  setSearch(event.target.value)
-                }
-                placeholder="Search hotel or city"
-              />
-            </label>
+            <button
+              type="button"
+              className={styles.viewAllLink}
+              onClick={() => {
+                setSearch("");
+                setSubmittedSearch("");
+                hotelsRef.current?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                });
+              }}
+            >
+              View all branches
+              <span aria-hidden="true">→</span>
+            </button>
           </div>
+
+          {query && (
+            <p className={styles.resultsDescription}>
+              Showing branches matching "{submittedSearch}"
+            </p>
+          )}
 
           {loading && (
             <p role="status">Loading hotels...</p>
