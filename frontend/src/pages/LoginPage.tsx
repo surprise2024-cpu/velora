@@ -22,7 +22,7 @@ export default function LoginPage() {
   if (user) {
     return (
       <Navigate
-        to={user.role === "ADMIN" ? "/admin" : "/account"}
+        to={user.role === "ADMIN" ? "/admin" : "/"}
         replace
       />
     );
