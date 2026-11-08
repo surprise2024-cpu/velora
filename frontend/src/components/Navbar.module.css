@@ -1,14 +1,22 @@
 
 .header {
-  background: #ffffff;
-  border-bottom: 1px solid #e8ebe7;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  background: rgba(16, 43, 37, 0.82);
+
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+
+  border-bottom: 1px solid rgba(196, 155, 99, 0.25);
 }
 
 .container {
   max-width: 1280px;
-  min-height: 84px;
+  min-height: 76px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 6px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -16,61 +24,174 @@
 }
 
 .logo {
-  font-size: 27px;
-  font-weight: 800;
-  letter-spacing: 3px;
-  color: #263b35;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
   text-decoration: none;
 }
 
-.logo span {
-  color: #ba9158;
+.logoImage {
+  display: block;
+  width: auto;
+  height: 54px;
+  max-width: 180px;
+  object-fit: contain;
 }
 
 .navigation {
   display: flex;
   align-items: center;
-  gap: 28px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 30px;
 }
 
-.navigation a {
+.navigation .navLink {
+  color: #f5f1e8;
   font-size: 14px;
   font-weight: 600;
-  color: #263b35;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-.navigation a:hover {
-  text-decoration: underline;
+.navigation .navLink:hover {
+  color: #d9b477;
 }
 
 .navigation .accountButton {
-  padding: 12px 20px;
-  background: #263b35;
-  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 20px;
   border-radius: 8px;
+  background: #c49b63;
+  color: #102b25;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s ease;
 }
+
+.navigation .accountButton:hover {
+  background: #e0b77c;
+}
+
+.logo:focus-visible,
+.navigation a:focus-visible {
+  outline: 2px solid #e0b77c;
+  outline-offset: 5px;
+}
+
+
+.menuToggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 1px solid rgba(196, 155, 99, 0.45);
+  border-radius: 8px;
+  background: transparent;
+  color: #d9b477;
+  cursor: pointer;
+}
+
+.menuIcon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 22px;
+}
+
+.menuIcon span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.menuToggle:hover {
+  background: rgba(196, 155, 99, 0.12);
+}
+
+.menuToggle:focus-visible {
+  outline: 2px solid #e0b77c;
+  outline-offset: 4px;
+}
+
+@media (max-width: 768px) {
+  .logoImage {
+    height: 50px;
+    max-width: 160px;
+  }
+}
+
 
 @media (max-width: 600px) {
   .container {
-    min-height: 72px;
-    padding: 0 18px;
+    position: relative;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 68px;
+    padding: 8px 20px;
+    gap: 16px;
   }
 
-  .logo {
-    font-size: 21px;
-    letter-spacing: 2px;
+  .logoImage {
+    height: 48px;
+    max-width: 150px;
+  }
+
+  .menuToggle {
+    display: inline-flex;
+    flex-shrink: 0;
   }
 
   .navigation {
-    gap: 12px;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 16px 20px 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    background: rgba(16, 43, 37, 0.99);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(196, 155, 99, 0.2);
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18);
   }
 
-  .navigation a {
-    font-size: 12px;
+  .navigationOpen {
+    display: flex;
+  }
+
+  .navigation .navLink {
+    display: block;
+    padding: 12px 10px;
+    font-size: 14px;
   }
 
   .navigation .accountButton {
-    padding: 10px 12px;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation .navLink,
+  .navigation .accountButton {
+    transition: none;
   }
 }
