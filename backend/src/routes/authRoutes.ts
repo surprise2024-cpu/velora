@@ -226,7 +226,7 @@ router.get("/google/callback", async (req, res) => {
 
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
-        const destination = user.role === "ADMIN" ? "/admin" : "/account";
+        const destination = user.role === "ADMIN" ? "/admin" : "/";
 
         return res.redirect(
           303,
