@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import styles from "./RoomDetailsModal.module.css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 
 export type RoomDetails = {
   roomTypeId: string;
@@ -315,7 +315,12 @@ export default function RoomDetailsModal({
                   >
                     {visibleAmenities.map((amenity) => (
                       <li key={amenity}>
-                        <span aria-hidden="true">✓</span>
+                        <Check
+                          className={styles.amenityIcon}
+                          size={18}
+                          strokeWidth={2.5}
+                          aria-hidden="true"
+                        />
                         {amenity}
                       </li>
                     ))}
