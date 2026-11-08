@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import FavouriteButton from "./FavouriteButton";
 import styles from "./HotelCard.module.css";
+import { ArrowRight } from "lucide-react";
 
 export type HotelBranch = {
   id: string;
@@ -65,7 +66,11 @@ export default function HotelCard({ branch }: HotelCardProps) {
           className={styles.detailsLink}
         >
           Explore branch
-          <span aria-hidden="true">→</span>
+          <ArrowRight
+            size={17}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
         </Link>
       </div>
     </article>
