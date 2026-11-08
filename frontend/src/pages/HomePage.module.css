@@ -73,6 +73,12 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
+.searchBar:focus-within {
+  box-shadow:
+    0 0 0 2px #c49b63,
+    0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
 .searchInputGroup {
   display: flex;
   align-items: center;
@@ -102,12 +108,6 @@
 
 .searchInput::placeholder {
   color: #8b938d;
-}
-
-.searchInput:focus-visible {
-  outline: 2px solid #ba9158;
-  outline-offset: 4px;
-  border-radius: 3px;
 }
 
 .searchButton {
