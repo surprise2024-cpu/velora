@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useAuth } from "../context/useAuth";
 import { useFavourites } from "../context/useFavourites";
 import styles from "./FavouriteButton.module.css";
+import { Heart } from "lucide-react";
 
 type Props = {
   branchId: string;
@@ -79,7 +80,12 @@ export default function FavouriteButton({
             : "Add to favourites"
         }
       >
-        {saved ? "♥" : "♡"}
+        <Heart
+          size={24}
+          strokeWidth={2}
+          fill={saved ? "currentColor" : "none"}
+          aria-hidden="true"
+        />
       </button>
 
       {(error || loadError) && (
