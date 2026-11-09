@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import HotelDetailsPage from "./pages/HotelDetailsPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import PaymentReturnPage from "./pages/PaymentReturnPage";
 import ProfilePage from "./pages/ProfilePage";
 
@@ -12,6 +13,7 @@ import MyBookingsPage from "./pages/MyBookingsPage";
 import FavouritesPage from "./pages/FavouritesPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -19,9 +21,7 @@ import AdminBranchesPage from "./pages/admin/AdminBranchesPage";
 import AdminRoomTypesPage from "./pages/admin/AdminRoomTypesPage";
 import AdminRoomsPage from "./pages/admin/AdminRoomsPage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
-
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
-
 
 export default function App() {
   return (
@@ -31,6 +31,11 @@ export default function App() {
       <Route
         path="/hotels/:branchId"
         element={<HotelDetailsPage />}
+      />
+
+      <Route
+        path="/checkout"
+        element={<CheckoutPage />}
       />
 
       <Route
@@ -44,6 +49,11 @@ export default function App() {
       />
 
       <Route path="/login" element={<LoginPage />} />
+
+      <Route
+        path="/register"
+        element={<RegisterPage />}
+      />
 
       <Route element={<ProtectedRoute allowedRole="CUSTOMER" />}>
         <Route path="/account" element={<AccountLayout />}>
