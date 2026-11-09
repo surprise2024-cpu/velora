@@ -8,7 +8,6 @@ import {
   clearGuestBookingRecovery,
 } from "../lib/bookingRecovery";
 
-
 type VerifyResponse = {
   success: boolean;
   data: {
@@ -31,6 +30,10 @@ type PendingPayment = {
   guestToken?: string;
 };
 
+type CheckoutAttempt = {
+  bookingId?: string;
+};
+
 export default function PaymentReturnPage() {
   const [params] = useSearchParams();
 
@@ -41,13 +44,17 @@ export default function PaymentReturnPage() {
     "loading" | "success" | "pending" | "failed"
   >("loading");
 
-  const [result, setResult] = useState<PaymentResult | null>(null);
+  const [result, setResult] = useState<PaymentResult | null>(
+    null
+  );
+
   const [error, setError] = useState<string | null>(null);
 
   const verificationStarted = useRef(false);
 
   useEffect(() => {
     if (verificationStarted.current) return;
+
     verificationStarted.current = true;
 
     async function verifyPayment() {
@@ -87,11 +94,14 @@ export default function PaymentReturnPage() {
         return;
       }
 
-      const isGuest = pending?.checkoutType === "guest";
+      const isGuest =
+        pending?.checkoutType === "guest";
 
       if (
         isGuest &&
-        !/^[a-f0-9]{64}$/.test(pending?.guestToken ?? "")
+        !/^[a-f0-9]{64}$/.test(
+          pending?.guestToken ?? ""
+        )
       ) {
         setError(
           "Guest payment access is unavailable. Please do not pay again."
@@ -118,7 +128,9 @@ export default function PaymentReturnPage() {
         );
 
         if (!response.success || !response.data) {
-          throw new Error("Payment verification failed.");
+          throw new Error(
+            "Payment verification failed."
+          );
         }
 
         setResult(response.data);
@@ -128,10 +140,37 @@ export default function PaymentReturnPage() {
           response.data.recordedStatus === "COMPLETED" &&
           !response.data.requiresReview
         ) {
+          // Payment has been successfully verified.
           sessionStorage.removeItem(
             "velora.pendingPayment"
           );
+
+          // Clear the checkout attempt only when it
+          // belongs to the successfully paid booking.
+          const savedAttempt = sessionStorage.getItem(
+            "velora.checkoutAttempt"
+          );
+
+          if (savedAttempt && pending?.bookingId) {
+            try {
+              const attempt = JSON.parse(
+                savedAttempt
+              ) as CheckoutAttempt;
+
+              if (
+                attempt.bookingId === pending.bookingId
+              ) {
+                sessionStorage.removeItem(
+                  "velora.checkoutAttempt"
+                );
+              }
+            } catch {
+              // Preserve unrecognized checkout data.
+            }
+          }
+
           clearGuestBookingRecovery();
+
           setStatus("success");
         } else if (
           response.data.requiresReview ||
@@ -147,6 +186,7 @@ export default function PaymentReturnPage() {
             ? err.message
             : "Unable to verify payment."
         );
+
         setStatus("pending");
       }
     }
@@ -163,6 +203,7 @@ export default function PaymentReturnPage() {
           {status === "loading" && (
             <>
               <h1>Verifying Your Payment</h1>
+
               <p role="status">
                 Please wait while we confirm your payment
                 with Paystack.
@@ -173,6 +214,7 @@ export default function PaymentReturnPage() {
           {status === "success" && (
             <>
               <h1>Payment Successful!</h1>
+
               <p>
                 Your payment has been verified and recorded
                 successfully.
@@ -183,6 +225,7 @@ export default function PaymentReturnPage() {
           {status === "pending" && (
             <>
               <h1>Payment Verification Pending</h1>
+
               <p>
                 We could not confirm the final payment result
                 on this page. Please do not start another
@@ -194,6 +237,7 @@ export default function PaymentReturnPage() {
           {status === "failed" && (
             <>
               <h1>Payment Not Confirmed</h1>
+
               <p>
                 We could not confirm a successful payment.
                 This does not necessarily mean that you
@@ -232,12 +276,18 @@ export default function PaymentReturnPage() {
           )}
 
           {error && (
-            <p className={styles.error} role="alert">
+            <p
+              className={styles.error}
+              role="alert"
+            >
               {error}
             </p>
           )}
 
-          <Link to="/" className={styles.homeLink}>
+          <Link
+            to="/"
+            className={styles.homeLink}
+          >
             Return to Hotels
           </Link>
         </section>
