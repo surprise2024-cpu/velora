@@ -1,8 +1,19 @@
+
 import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import { apiRequest } from "../lib/api";
 import Navbar from "../components/Navbar";
 import HotelCard from "../components/HotelCard";
 import type { HotelBranch } from "../components/HotelCard";
+
+import type { RootState, AppDispatch } from "../store/store";
+import {
+  setSearchQuery,
+  submitSearch,
+  clearSearchQuery,
+} from "../store/searchSlice";
+
 import styles from "./HomePage.module.css";
 import { ArrowRight, Search } from "lucide-react";
 
@@ -13,10 +24,18 @@ type BranchResponse = {
 
 export default function HomePage() {
   const [branches, setBranches] = useState<HotelBranch[]>([]);
-  const [search, setSearch] = useState("");
-  const [submittedSearch, setSubmittedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const dispatch = useDispatch<AppDispatch>();
+
+  const search = useSelector(
+    (state: RootState) => state.search.query
+  );
+
+  const submittedSearch = useSelector(
+    (state: RootState) => state.search.submittedQuery
+  );
 
   const hotelsRef = useRef<HTMLElement | null>(null);
 
@@ -68,10 +87,12 @@ export default function HomePage() {
     )
   );
 
-  function handleSearch(event: React.FormEvent<HTMLFormElement>) {
+  function handleSearch(
+    event: React.FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault();
 
-    setSubmittedSearch(search.trim());
+    dispatch(submitSearch());
 
     hotelsRef.current?.scrollIntoView({
       behavior: "smooth",
@@ -127,7 +148,9 @@ export default function HomePage() {
                   autoComplete="off"
                   value={search}
                   onChange={(event) =>
-                    setSearch(event.target.value)
+                    dispatch(
+                      setSearchQuery(event.target.value)
+                    )
                   }
                   placeholder="Search for a hotel, branch or city (e.g. Cape Town, Sandton, Umhlanga)"
                   className={styles.searchInput}
@@ -160,8 +183,8 @@ export default function HomePage() {
               type="button"
               className={styles.viewAllLink}
               onClick={() => {
-                setSearch("");
-                setSubmittedSearch("");
+                dispatch(clearSearchQuery());
+
                 hotelsRef.current?.scrollIntoView({
                   behavior: "smooth",
                   block: "start",
@@ -184,11 +207,16 @@ export default function HomePage() {
           )}
 
           {loading && (
-            <p role="status">Loading hotels...</p>
+            <p role="status">
+              Loading hotels...
+            </p>
           )}
 
           {error && (
-            <p role="alert" className={styles.error}>
+            <p
+              role="alert"
+              className={styles.error}
+            >
               {error}
             </p>
           )}
