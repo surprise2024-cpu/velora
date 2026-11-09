@@ -1,16 +1,28 @@
 
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
+import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/requireAuth.js";
+
 import {
   bookingSchema,
   guestBookingSchema,
+  checkoutIdentitySchema,
   createBooking,
   BookingError,
 } from "../services/bookingService.js";
 
 const router = Router();
+
+const checkoutBookingSchema = bookingSchema.extend({
+  checkout: checkoutIdentitySchema.optional(),
+});
+
+const checkoutGuestBookingSchema =
+  guestBookingSchema.extend({
+    checkout: checkoutIdentitySchema.optional(),
+  });
 
 const guestBookingLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -35,6 +47,14 @@ function handleBookingError(
     });
   }
 
+  if (error instanceof z.ZodError) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid checkout details",
+      errors: z.flattenError(error),
+    });
+  }
+
   console.error("Failed to create booking:", error);
 
   return res.status(500).json({
@@ -43,9 +63,10 @@ function handleBookingError(
   });
 }
 
-// Existing authenticated customer booking endpoint.
 router.post("/", requireAuth, async (req, res) => {
-  const parsed = bookingSchema.safeParse(req.body);
+  const parsed = checkoutBookingSchema.safeParse(
+    req.body
+  );
 
   if (!parsed.success) {
     return res.status(400).json({
@@ -55,10 +76,15 @@ router.post("/", requireAuth, async (req, res) => {
     });
   }
 
+  const { checkout, ...bookingInput } = parsed.data;
+
   try {
     const { booking } = await createBooking(
-      parsed.data,
-      { userId: res.locals.authUser.id }
+      bookingInput,
+      {
+        userId: res.locals.authUser.id,
+      },
+      checkout
     );
 
     return res.status(201).json({
@@ -71,12 +97,14 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
-// Public guest booking endpoint.
 router.post(
   "/guest",
   guestBookingLimiter,
   async (req, res) => {
-    const parsed = guestBookingSchema.safeParse(req.body);
+    const parsed =
+      checkoutGuestBookingSchema.safeParse(
+        req.body
+      );
 
     if (!parsed.success) {
       return res.status(400).json({
@@ -90,18 +118,23 @@ router.post(
       guestName,
       guestEmail,
       guestPhone,
+      checkout,
       ...bookingInput
     } = parsed.data;
 
     try {
       const { booking, guestToken } =
-        await createBooking(bookingInput, {
-          guest: {
-            name: guestName,
-            email: guestEmail,
-            phone: guestPhone,
+        await createBooking(
+          bookingInput,
+          {
+            guest: {
+              name: guestName,
+              email: guestEmail,
+              phone: guestPhone,
+            },
           },
-        });
+          checkout
+        );
 
       return res.status(201).json({
         success: true,
@@ -121,7 +154,6 @@ router.post(
   }
 );
 
-// Existing customer booking history endpoint.
 router.get("/my", requireAuth, async (_req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
