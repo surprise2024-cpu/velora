@@ -1,41 +1,54 @@
 
 .container {
   width: 100%;
+  min-width: 0;
 }
 
 .searchForm {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 16px;
-  align-items: end;
-  padding: 24px;
-  background: #ffffff;
-  border: 1px solid #e2e8e2;
-  border-radius: 14px;
+  width: 100%;
+  margin: 22px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
   min-width: 0;
 }
 
 .field label {
+  display: block;
+  width: 100%;
+  color: #354a40;
   font-size: 13px;
   font-weight: 700;
-  color: #354a40;
+  line-height: 1.5;
 }
 
 .field input {
+  display: block;
   width: 100%;
+  min-width: 0;
+  height: 46px;
   min-height: 46px;
   padding: 10px 12px;
+  box-sizing: border-box;
   border: 1px solid #d6ded7;
   border-radius: 8px;
   background: #ffffff;
   color: #25362e;
-  font: inherit;
+  font-family: inherit;
+  font-size: 14px;
 }
 
 .field input:focus-visible {
@@ -44,18 +57,30 @@
 }
 
 .searchButton {
-  min-height: 46px;
-  padding: 12px 20px;
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 4px;
+  padding: 12px 16px;
   border: none;
   border-radius: 8px;
-  background: #263b35;
-  color: #ffffff;
+  background: #c49b63;
+  color: #263b35;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 700;
+  text-align: center;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .searchButton:hover:not(:disabled) {
-  background: #3b5a4b;
+  background: #d6af76;
+}
+
+.searchButton:focus-visible {
+  outline: 3px solid #355a4b;
+  outline-offset: 3px;
 }
 
 .searchButton:disabled {
@@ -76,6 +101,7 @@
 
 .results {
   margin-top: 32px;
+  scroll-margin-top: 110px;
 }
 
 .resultsHeading {
@@ -94,25 +120,88 @@
 }
 
 .roomList {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
 }
 
 .roomCard {
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 24px;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 14px 16px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 16px;
   background: #ffffff;
   border: 1px solid #e2e8e2;
   border-radius: 12px;
 }
 
-.roomInfo h4 {
-  margin: 0 0 14px;
-  font-size: 21px;
+.roomImageContainer {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  height: 150px;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e8ede9;
+}
+
+.roomImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.roomImagePlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  background: linear-gradient(135deg, #405c50, #9cad9f);
+  color: #ffffff;
+  text-align: center;
+}
+
+.roomImagePlaceholder strong {
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.roomImagePlaceholder span {
+  font-size: 11px;
+}
+
+.roomInfo {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.roomTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.roomTitleRow h4 {
+  margin: 0;
   color: #263b35;
+  font-size: 18px;
 }
 
 .roomInfo p {
@@ -140,109 +229,12 @@
   color: #a02c25;
 }
 
-.priceSection {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  gap: 6px;
-}
-
-.priceSection strong {
-  font-size: 23px;
-  color: #263b35;
-}
-
-.priceSection span,
-.priceSection p {
-  color: #68716b;
-  font-size: 13px;
-}
-
-.selectButton {
-  margin-top: 12px;
-  padding: 12px 18px;
-  border: none;
-  border-radius: 8px;
-  background: #263b35;
-  color: white;
-  font-weight: 700;
-}
-
-.selectButton:disabled {
-  background: #aeb8b1;
-  cursor: not-allowed;
-}
-
-
-.selectButton:not(:disabled) {
-  cursor: pointer;
-}
-
-.selectButton:not(:disabled):hover {
-  background: #36574a;
-}
-
-.emptyState {
-  padding: 24px;
-  border: 1px solid #e2e8e2;
-  border-radius: 12px;
-  background: #ffffff;
-}
-
-.emptyState h4 {
-  margin: 0 0 10px;
-  color: #263b35;
-  font-size: 18px;
-}
-
-.emptyState p {
-  margin: 8px 0;
-  color: #68716b;
-  line-height: 1.6;
-}
-
-.roomImageContainer {
-  flex: 0 0 220px;
-  height: 170px;
-  overflow: hidden;
-  border-radius: 10px;
-  background: #e8ede9;
-}
-
-.roomImage {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.roomImagePlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  height: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #405c50, #9cad9f);
-  color: #ffffff;
-  text-align: center;
-}
-
-.roomImagePlaceholder strong {
-  font-size: 12px;
-  letter-spacing: 2px;
-}
-
-.roomImagePlaceholder span {
+.roomTitleRow .available,
+.roomTitleRow .unavailable {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 6px 9px;
   font-size: 11px;
-}
-
-.roomInfo {
-  flex: 1;
-  min-width: 0;
 }
 
 .detailsButton {
@@ -270,41 +262,176 @@
   border-radius: 3px;
 }
 
-@media (max-width: 900px) {
-  .searchForm {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.priceSection {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: repeat(3, auto);
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 4px;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8e2;
+  text-align: left;
+}
+
+.priceSection strong,
+.priceSection span,
+.priceSection p {
+  grid-column: 1;
+}
+
+.priceSection strong {
+  grid-row: 1;
+  color: #263b35;
+  font-size: 21px;
+}
+
+.priceSection span {
+  grid-row: 2;
+  color: #68716b;
+  font-size: 12px;
+}
+
+.priceSection p {
+  grid-row: 3;
+  margin: 0;
+  color: #68716b;
+  font-size: 12px;
+}
+
+.selectButton {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  margin: 0;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #263b35;
+  color: #ffffff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.selectButton:disabled {
+  background: #aeb8b1;
+  cursor: not-allowed;
+}
+
+.selectButton:not(:disabled) {
+  cursor: pointer;
+}
+
+.selectButton:not(:disabled):hover {
+  background: #36574a;
+}
+
+.selectButton:focus-visible {
+  outline: 3px solid #b78b52;
+  outline-offset: 3px;
+}
+
+.emptyState {
+  padding: 24px;
+  border: 1px solid #e2e8e2;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.emptyState h4 {
+  margin: 0 0 10px;
+  color: #263b35;
+  font-size: 18px;
+}
+
+.emptyState p {
+  margin: 8px 0;
+  color: #68716b;
+  line-height: 1.6;
+}
+
+.field input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.field input[type="number"]::-webkit-inner-spin-button,
+.field input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media (max-width: 1100px) {
+  .roomList {
+    grid-template-columns: 1fr;
   }
 
   .roomCard {
-    flex-wrap: wrap;
-  }
-
-  .roomImageContainer {
-    flex-basis: 180px;
+    grid-template-columns: 170px minmax(0, 1fr);
   }
 }
 
 @media (max-width: 600px) {
-  .roomImageContainer {
-    flex: none;
-    width: 100%;
-    height: 210px;
+  .searchForm {
+    gap: 14px;
   }
 
-  .searchForm {
-    grid-template-columns: 1fr;
-    padding: 18px;
+  .field input {
+    font-size: 14px;
   }
 
   .roomCard {
-    flex-direction: column;
-    padding: 18px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .roomImageContainer {
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    height: 200px;
+  }
+
+  .roomInfo {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .priceSection {
-    align-items: flex-start;
-    text-align: left;
-    border-top: 1px solid #e2e8e2;
-    padding-top: 18px;
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .roomTitleRow {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 380px) {
+  .priceSection {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .priceSection strong,
+  .priceSection span,
+  .priceSection p {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .selectButton {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: stretch;
+    margin-top: 8px;
   }
 }
