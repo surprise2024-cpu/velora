@@ -47,7 +47,6 @@ function requireProductionUrl(
   return url;
 }
 
-
 function validatePaystackEnvironment(): void {
   const secretKey = process.env.PAYSTACK_SECRET_KEY;
 
@@ -74,10 +73,19 @@ function validatePaystackEnvironment(): void {
   }
 }
 
+function validateCheckoutRecoveryEnvironment(): void {
+  const secret = process.env.CHECKOUT_RECOVERY_SECRET;
 
+  if (!secret || !/^[a-fA-F0-9]{64}$/.test(secret)) {
+    throw new Error(
+      "CHECKOUT_RECOVERY_SECRET must be a 64-character hexadecimal value"
+    );
+  }
+}
 
 export function validateEnvironment(): void {
   validatePaystackEnvironment();
+  validateCheckoutRecoveryEnvironment();
 
   if (!isProduction) {
     return;
