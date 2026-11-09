@@ -1,0 +1,611 @@
+
+.page {
+  min-height: 100vh;
+  background: #f8f6f1;
+  color: #263b35;
+  padding: 42px 24px 90px;
+}
+
+.container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 26px;
+  color: #64746c;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: #263b35;
+}
+
+.heading {
+  margin-bottom: 32px;
+}
+
+.heading h1 {
+  margin: 0 0 10px;
+  color: #263b35;
+  font-size: clamp(29px, 3vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+
+.heading p {
+  margin: 0;
+  color: #77817b;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  max-width: 890px;
+  margin: 0 auto 42px;
+}
+
+.progressStep {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  color: #748078;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.progressStep:nth-child(3) {
+  color: #263b35;
+}
+
+.completedStep,
+.activeStep,
+.pendingStep {
+  display: flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.completedStep {
+  background: #263b35;
+  color: #ffffff;
+}
+
+.activeStep {
+  background: #c49b63;
+  color: #ffffff;
+}
+
+.pendingStep {
+  background: #eaece8;
+  color: #929a94;
+}
+
+.progressLine {
+  flex: 1;
+  min-width: 18px;
+  height: 1px;
+  background: #d9ded8;
+}
+
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 1fr);
+  align-items: start;
+  gap: 28px;
+}
+
+.guestPanel,
+.summaryPanel {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e8e8e1;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgb(30 48 39 / 4%);
+}
+
+.guestPanel {
+  padding: 34px;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #263b35;
+}
+
+.panelHeading h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.panelDescription {
+  margin: 13px 0 29px;
+  color: #7c8780;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.guestForm {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.nameGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.field label {
+  color: #34483e;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #dfe4dd;
+  border-radius: 7px;
+  outline: none;
+  background: #ffffff;
+  color: #263b35;
+  font: inherit;
+  font-size: 14px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.field input {
+  height: 46px;
+  padding: 0 14px;
+}
+
+.field textarea {
+  min-height: 110px;
+  padding: 13px 14px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #a5ada6;
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: #c49b63;
+  box-shadow: 0 0 0 3px rgb(196 155 99 / 13%);
+}
+
+.optional {
+  margin-left: 5px;
+  color: #9ba49c;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.terms {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 4px;
+  color: #65746a;
+  font-size: 12px;
+  line-height: 1.7;
+  cursor: pointer;
+}
+
+.terms input {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+  accent-color: #263b35;
+  cursor: pointer;
+}
+
+.summaryHeading {
+  display: flex;
+  min-height: 74px;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 28px;
+  background: #263b35;
+  color: #ffffff;
+}
+
+.summaryHeading h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.summaryBody {
+  padding: 27px 28px 30px;
+}
+
+.summaryBody h3 {
+  margin: 0 0 7px;
+  color: #263b35;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.roomName {
+  margin: 0 0 18px;
+  color: #7a867e;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.roomImageContainer {
+  width: 100%;
+  height: 205px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: #e7e9e2;
+}
+
+.roomImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagePlaceholder {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #e6e9e0, #f4f2eb);
+  text-align: center;
+}
+
+.imagePlaceholder span {
+  color: #263b35;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.imagePlaceholder p {
+  margin: 0;
+  color: #7d887f;
+  font-size: 12px;
+}
+
+.dateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 25px;
+  padding-bottom: 23px;
+  border-bottom: 1px solid #edf0eb;
+}
+
+.dateGrid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dateGrid span {
+  color: #859087;
+  font-size: 12px;
+}
+
+.dateGrid strong {
+  color: #263b35;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.stayDetails {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid #edf0eb;
+  color: #647269;
+  font-size: 13px;
+}
+
+.priceDetails {
+  padding: 21px 0 23px;
+}
+
+.priceRow,
+.totalRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.priceRow {
+  padding-bottom: 21px;
+  color: #758178;
+  font-size: 13px;
+}
+
+.priceRow strong {
+  color: #34483e;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.totalRow {
+  padding-top: 21px;
+  border-top: 1px solid #edf0eb;
+}
+
+.totalRow strong:first-child {
+  color: #263b35;
+  font-size: 15px;
+}
+
+.totalRow strong:last-child {
+  color: #263b35;
+  font-size: 21px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.continueButton {
+  display: flex;
+  width: 100%;
+  min-height: 49px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 7px;
+  background: #c49b63;
+  color: #ffffff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.continueButton:hover:not(:disabled) {
+  background: #b58b52;
+  transform: translateY(-1px);
+}
+
+.continueButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.continueButton:focus-visible,
+.backLink:focus-visible,
+.backButton:focus-visible {
+  outline: 3px solid #c49b63;
+  outline-offset: 3px;
+}
+
+.paymentNotice {
+  margin: 14px 0 0;
+  color: #879188;
+  font-size: 11px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.emptyState {
+  max-width: 540px;
+  margin: 80px auto;
+  padding: 42px 32px;
+  border: 1px solid #e8e8e1;
+  border-radius: 12px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.emptyState h1 {
+  margin: 0 0 15px;
+  color: #263b35;
+  font-size: 28px;
+}
+
+.emptyState p {
+  margin: 0 0 26px;
+  color: #748078;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.backButton {
+  display: inline-flex;
+  min-height: 45px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  border-radius: 7px;
+  background: #263b35;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.backButton:hover {
+  background: #344f45;
+}
+
+@media (max-width: 1000px) {
+  .checkoutGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(310px, 0.9fr);
+    gap: 20px;
+  }
+
+  .guestPanel {
+    padding: 26px;
+  }
+
+  .summaryHeading {
+    padding: 20px 22px;
+  }
+
+  .summaryBody {
+    padding: 24px 22px;
+  }
+}
+
+@media (max-width: 800px) {
+  .checkoutGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .summaryPanel {
+    max-width: none;
+  }
+
+  .progress {
+    gap: 10px;
+  }
+
+  .progressStep {
+    gap: 7px;
+    font-size: 12px;
+  }
+
+  .completedStep,
+  .activeStep,
+  .pendingStep {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 25px 16px 60px;
+  }
+
+  .backLink {
+    margin-bottom: 23px;
+  }
+
+  .heading {
+    margin-bottom: 26px;
+  }
+
+  .heading h1 {
+    font-size: 29px;
+  }
+
+  .heading p {
+    font-size: 13px;
+  }
+
+  .progress {
+    justify-content: space-between;
+    gap: 5px;
+    margin-bottom: 30px;
+  }
+
+  .progressStep {
+    flex-direction: column;
+    gap: 7px;
+    font-size: 10px;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .progressLine {
+    align-self: flex-start;
+    min-width: 6px;
+    margin-top: 15px;
+  }
+
+  .guestPanel {
+    padding: 24px 18px;
+  }
+
+  .panelHeading h2 {
+    font-size: 18px;
+  }
+
+  .nameGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .guestForm {
+    gap: 20px;
+  }
+
+  .summaryHeading {
+    min-height: 66px;
+    padding: 19px 20px;
+  }
+
+  .summaryHeading h2 {
+    font-size: 18px;
+  }
+
+  .summaryBody {
+    padding: 23px 20px 26px;
+  }
+
+  .roomImageContainer {
+    height: 190px;
+  }
+
+  .totalRow strong:last-child {
+    font-size: 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backLink,
+  .field input,
+  .field textarea,
+  .continueButton {
+    transition: none;
+  }
+}
