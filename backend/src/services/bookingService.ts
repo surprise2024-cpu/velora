@@ -1,5 +1,10 @@
 
-import { randomBytes, createHash } from "node:crypto";
+import {
+  randomBytes,
+  createHash,
+  createHmac,
+  timingSafeEqual,
+} from "node:crypto";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 
@@ -22,6 +27,11 @@ export const guestBookingSchema = bookingSchema.extend({
   guestPhone: z.string().trim().min(7).max(30),
 });
 
+export const checkoutIdentitySchema = z.object({
+  idempotencyKey: z.uuid(),
+  checkoutSecret: z.string().regex(/^[a-f0-9]{64}$/),
+});
+
 type BookingInput = z.infer<typeof bookingSchema>;
 
 type CustomerDetails =
@@ -34,6 +44,10 @@ type CustomerDetails =
         phone: string;
       };
     };
+
+type CheckoutIdentity = z.infer<
+  typeof checkoutIdentitySchema
+>;
 
 export class BookingError extends Error {
   constructor(
@@ -94,148 +108,310 @@ function validateBooking(input: BookingInput) {
   return { checkInDate, checkOutDate };
 }
 
+function hashValue(value: string): string {
+  return createHash("sha256")
+    .update(value)
+    .digest("hex");
+}
+
+function deriveGuestToken(
+  checkout: CheckoutIdentity
+): string {
+  const secret = process.env.CHECKOUT_RECOVERY_SECRET;
+
+  if (!secret || !/^[a-fA-F0-9]{64}$/.test(secret)) {
+    throw new Error(
+      "Checkout recovery secret is not configured"
+    );
+  }
+
+  return createHmac(
+    "sha256",
+    Buffer.from(secret, "hex")
+  )
+    .update("velora-guest-booking-v1:")
+    .update(checkout.idempotencyKey)
+    .update(":")
+    .update(checkout.checkoutSecret)
+    .digest("hex");
+}
+
+function createRequestHash(
+  input: BookingInput,
+  customer: CustomerDetails,
+  checkout: CheckoutIdentity
+): string {
+  const normalizedRooms = [...input.rooms]
+    .sort((a, b) =>
+      a.roomTypeId.localeCompare(b.roomTypeId)
+    )
+    .map((room) => ({
+      roomTypeId: room.roomTypeId,
+      quantity: room.quantity,
+    }));
+
+  let identity:
+    | {
+        type: "customer";
+        userId: string;
+      }
+    | {
+        type: "guest";
+        name: string;
+        email: string;
+        phone: string;
+      };
+
+  if (customer.userId) {
+    identity = {
+      type: "customer",
+      userId: customer.userId,
+    };
+  } else if (customer.guest) {
+    identity = {
+      type: "guest",
+      name: customer.guest.name.trim(),
+      email: customer.guest.email.trim().toLowerCase(),
+      phone: customer.guest.phone.trim(),
+    };
+  } else {
+    throw new BookingError(
+      400,
+      "Customer or guest information is required"
+    );
+  }
+
+
+  return hashValue(
+    JSON.stringify({
+      version: 1,
+      identity,
+      checkoutSecretHash: hashValue(
+        checkout.checkoutSecret
+      ),
+      branchId: input.branchId,
+      checkIn: input.checkIn,
+      checkOut: input.checkOut,
+      guestCount: input.guestCount,
+      rooms: normalizedRooms,
+    })
+  );
+}
+
+function hashesMatch(
+  supplied: string,
+  stored: string
+): boolean {
+  if (
+    !/^[a-f0-9]{64}$/.test(supplied) ||
+    !/^[a-f0-9]{64}$/.test(stored)
+  ) {
+    return false;
+  }
+
+  return timingSafeEqual(
+    Buffer.from(supplied, "hex"),
+    Buffer.from(stored, "hex")
+  );
+}
+
+const bookingInclude = {
+  bookingRooms: {
+    include: {
+      room: {
+        include: {
+          roomType: true,
+        },
+      },
+    },
+  },
+} as const;
+
 export async function createBooking(
   input: BookingInput,
-  customer: CustomerDetails
+  customer: CustomerDetails,
+  checkout?: CheckoutIdentity
 ) {
   const { checkInDate, checkOutDate } =
     validateBooking(input);
 
+  const validatedCheckout = checkout
+    ? checkoutIdentitySchema.parse(checkout)
+    : null;
+
+  const requestHash = validatedCheckout
+    ? createRequestHash(
+        input,
+        customer,
+        validatedCheckout
+      )
+    : null;
+
   const guestToken = customer.guest
-    ? randomBytes(32).toString("hex")
+    ? validatedCheckout
+      ? deriveGuestToken(validatedCheckout)
+      : randomBytes(32).toString("hex")
     : null;
 
   const guestTokenHash = guestToken
-    ? createHash("sha256")
-        .update(guestToken)
-        .digest("hex")
+    ? hashValue(guestToken)
     : null;
 
-  const booking = await prisma.$transaction(async (tx) => {
-    // Preserve the same branch-level allocation lock.
-    await tx.$executeRaw`
-      SELECT pg_advisory_xact_lock(
-        hashtextextended(${input.branchId}, 0)
-      )
-    `;
+  const booking = await prisma.$transaction(
+    async (tx) => {
+      await tx.$executeRaw`
+        SELECT pg_advisory_xact_lock(
+          hashtextextended(${input.branchId}, 0)
+        )
+      `;
 
-    const branch = await tx.branch.findFirst({
-      where: {
-        id: input.branchId,
-        isActive: true,
-      },
-      select: { id: true },
-    });
+      if (validatedCheckout) {
+        const existing = await tx.booking.findUnique({
+          where: {
+            idempotencyKey:
+              validatedCheckout.idempotencyKey,
+          },
+          include: bookingInclude,
+        });
 
-    if (!branch) {
-      throw new BookingError(
-        404,
-        "Hotel branch not found"
-      );
-    }
+        if (existing) {
+          if (
+            !requestHash ||
+            !existing.checkoutRequestHash ||
+            !hashesMatch(
+              requestHash,
+              existing.checkoutRequestHash
+            ) ||
+            (customer.userId
+              ? existing.userId !== customer.userId
+              : existing.userId !== null ||
+                existing.guestAccessTokenHash !==
+                  guestTokenHash)
+          ) {
+            throw new BookingError(
+              409,
+              "Checkout identifier has already been used for another request"
+            );
+          }
 
-    const selectedRooms: {
-      roomId: string;
-      price: string;
-    }[] = [];
-
-    let totalCapacity = 0;
-
-    for (const requested of input.rooms) {
-      const roomType = await tx.roomType.findFirst({
-        where: {
-          id: requested.roomTypeId,
-          branchId: input.branchId,
-          isActive: true,
-        },
-      });
-
-      if (!roomType) {
-        throw new BookingError(
-          404,
-          "Room type not found"
-        );
+          return existing;
+        }
       }
 
-      totalCapacity +=
-        roomType.maxGuests * requested.quantity;
-
-      const availableRooms = await tx.room.findMany({
+      const branch = await tx.branch.findFirst({
         where: {
-          branchId: input.branchId,
-          roomTypeId: roomType.id,
+          id: input.branchId,
           isActive: true,
-          bookingRooms: {
-            none: {
-              booking: {
-                status: {
-                  in: ["PENDING", "CONFIRMED"],
-                },
-                checkIn: { lt: checkOutDate },
-                checkOut: { gt: checkInDate },
-              },
-            },
-          },
         },
-        take: requested.quantity,
-        orderBy: { roomNumber: "asc" },
         select: { id: true },
       });
 
-      if (availableRooms.length < requested.quantity) {
+      if (!branch) {
         throw new BookingError(
-          409,
-          "Not enough rooms available for the selected dates"
+          404,
+          "Hotel branch not found"
         );
       }
 
-      for (const room of availableRooms) {
-        selectedRooms.push({
-          roomId: room.id,
-          price: roomType.basePrice.toString(),
+      const selectedRooms: {
+        roomId: string;
+        price: string;
+      }[] = [];
+
+      let totalCapacity = 0;
+
+      for (const requested of input.rooms) {
+        const roomType = await tx.roomType.findFirst({
+          where: {
+            id: requested.roomTypeId,
+            branchId: input.branchId,
+            isActive: true,
+          },
         });
-      }
-    }
 
-    if (input.guestCount > totalCapacity) {
-      throw new BookingError(
-        400,
-        "Guest count exceeds selected room capacity"
-      );
-    }
+        if (!roomType) {
+          throw new BookingError(
+            404,
+            "Room type not found"
+          );
+        }
 
-    return tx.booking.create({
-      data: {
-        userId: customer.userId ?? null,
-        guestName: customer.guest?.name ?? null,
-        guestEmail:
-          customer.guest?.email.toLowerCase() ?? null,
-        guestPhone: customer.guest?.phone ?? null,
-        guestAccessTokenHash: guestTokenHash,
-        checkIn: checkInDate,
-        checkOut: checkOutDate,
-        guestCount: input.guestCount,
-        status: "PENDING",
-        bookingRooms: {
-          create: selectedRooms.map((room) => ({
-            roomId: room.roomId,
-            price: room.price,
-          })),
-        },
-      },
-      include: {
-        bookingRooms: {
-          include: {
-            room: {
-              include: {
-                roomType: true,
+        totalCapacity +=
+          roomType.maxGuests * requested.quantity;
+
+        const availableRooms = await tx.room.findMany({
+          where: {
+            branchId: input.branchId,
+            roomTypeId: roomType.id,
+            isActive: true,
+            bookingRooms: {
+              none: {
+                booking: {
+                  status: {
+                    in: ["PENDING", "CONFIRMED"],
+                  },
+                  checkIn: { lt: checkOutDate },
+                  checkOut: { gt: checkInDate },
+                },
               },
             },
           },
+          take: requested.quantity,
+          orderBy: { roomNumber: "asc" },
+          select: { id: true },
+        });
+
+        if (
+          availableRooms.length < requested.quantity
+        ) {
+          throw new BookingError(
+            409,
+            "Not enough rooms available for the selected dates"
+          );
+        }
+
+        for (const room of availableRooms) {
+          selectedRooms.push({
+            roomId: room.id,
+            price: roomType.basePrice.toString(),
+          });
+        }
+      }
+
+      if (input.guestCount > totalCapacity) {
+        throw new BookingError(
+          400,
+          "Guest count exceeds selected room capacity"
+        );
+      }
+
+      return tx.booking.create({
+        data: {
+          idempotencyKey:
+            validatedCheckout?.idempotencyKey ?? null,
+          checkoutRequestHash: requestHash,
+          userId: customer.userId ?? null,
+          guestName: customer.guest?.name ?? null,
+          guestEmail:
+            customer.guest?.email.toLowerCase() ??
+            null,
+          guestPhone: customer.guest?.phone ?? null,
+          guestAccessTokenHash: guestTokenHash,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          guestCount: input.guestCount,
+          status: "PENDING",
+          bookingRooms: {
+            create: selectedRooms.map((room) => ({
+              roomId: room.roomId,
+              price: room.price,
+            })),
+          },
         },
-      },
-    });
-  });
+        include: bookingInclude,
+      });
+    }
+  );
 
   return {
     booking,
