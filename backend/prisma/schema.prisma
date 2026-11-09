@@ -1,7 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
   provider = "prisma-client"
@@ -97,13 +93,15 @@ model Room {
 }
 
 model Booking {
-  id         String        @id @default(uuid()) @db.Uuid
-  checkIn    DateTime      @db.Date
-  checkOut   DateTime      @db.Date
-  guestCount Int
-  status     BookingStatus @default(PENDING)
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id                  String        @id @default(uuid()) @db.Uuid
+  idempotencyKey      String?       @unique @db.Uuid
+  checkoutRequestHash String?       @db.VarChar(64)
+  checkIn             DateTime      @db.Date
+  checkOut            DateTime      @db.Date
+  guestCount          Int
+  status              BookingStatus @default(PENDING)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   // Existing registered customer relationship
   userId String? @db.Uuid
@@ -187,7 +185,6 @@ model Payment {
   @@index([status])
   @@index([requiresReview, status])
 }
-
 
 enum PaymentStatus {
   PENDING
