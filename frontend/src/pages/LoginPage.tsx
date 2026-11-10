@@ -1,13 +1,27 @@
 
-import { Link, Navigate } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import {
+  Link,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+
 import { useAuth } from "../context/useAuth";
+
+import {
+  apiRequest,
+  ApiError,
+  clearCsrfToken,
+} from "../lib/api";
+
 import styles from "./LoginPage.module.css";
 
 import {
   ArrowLeft,
+  Eye,
+  EyeOff,
   LockKeyhole,
-  ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.PROD
@@ -16,11 +30,64 @@ const API_BASE_URL = import.meta.env.PROD
     "http://localhost:5000/api/v1";
 
 export default function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const message =
+    (location.state as { message?: string } | null)
+      ?.message ?? "";
+
+  async function handleLogin(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    let authenticated = false;
+
+    try {
+      await apiRequest("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      authenticated = true;
+
+      clearCsrfToken();
+
+      await refreshUser();
+
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(
+        authenticated
+          ? "Signed in, but we couldn't refresh your session. Please reload the page."
+          : err instanceof ApiError
+            ? err.message
+            : "Unable to sign in. Please try again."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   if (loading) {
     return (
-      <main className={styles.loading} role="status">
+      <main
+        className={styles.loading}
+        role="status"
+      >
         Checking your session...
       </main>
     );
@@ -47,8 +114,8 @@ export default function LoginPage() {
             <h1>Your next stay starts here.</h1>
 
             <p className={styles.visualDescription}>
-              Sign in to manage bookings, save favourite hotels,
-              and explore new destinations.
+              Sign in to manage bookings, save favourite
+              hotels, and explore new destinations.
             </p>
           </div>
         </aside>
@@ -57,7 +124,10 @@ export default function LoginPage() {
           <div className={styles.formContent}>
             <div className={styles.formIntro}>
               <div className={styles.introTop}>
-                <Link to="/" className={styles.backLink}>
+                <Link
+                  to="/"
+                  className={styles.backLink}
+                >
                   <ArrowLeft
                     size={17}
                     strokeWidth={2}
@@ -65,38 +135,118 @@ export default function LoginPage() {
                   />
                   <span>Back to hotels</span>
                 </Link>
-
-                <p className={styles.formEyebrow}>
-                  <Sparkles
-                    size={15}
-                    aria-hidden="true"
-                  />
-                  YOUR VELORA EXPERIENCE
-                </p>
               </div>
 
               <h2>Welcome back.</h2>
 
               <p className={styles.description}>
-                Your next memorable stay is just a sign-in away.
+                Your next memorable stay is just a
+                sign-in away.
               </p>
             </div>
 
-            <div className={styles.benefitsPanel}>
-              <ShieldCheck
-                size={22}
-                aria-hidden="true"
-              />
+            {message && (
+              <p
+                role="status"
+                className={styles.authSuccess}
+              >
+                {message}
+              </p>
+            )}
 
-              <div>
-                <h3>One account. Every Velora stay.</h3>
+            <form
+              onSubmit={handleLogin}
+              className={styles.authForm}
+            >
+              <label>
+                Email address
+                <input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(event) =>
+                    setEmail(event.target.value)
+                  }
+                  maxLength={254}
+                  required
+                />
+              </label>
 
-                <p>
-                  Manage reservations, save your favourite hotels,
-                  and personalise your experience.
+              <label>
+                Password
+
+                <div className={styles.passwordField}>
+                  <input
+                    type={
+                      showPassword ? "text" : "password"
+                    }
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) =>
+                      setPassword(event.target.value)
+                    }
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() =>
+                      setShowPassword(
+                        (previous) => !previous
+                      )
+                    }
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                    aria-pressed={showPassword}
+                    title={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff
+                        size={19}
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <Eye
+                        size={19}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+                </div>
+              </label>
+
+              {error && (
+                <p
+                  role="alert"
+                  className={styles.authError}
+                >
+                  {error}
                 </p>
-              </div>
-            </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+              >
+                {submitting
+                  ? "Signing in..."
+                  : "Sign in"}
+              </button>
+            </form>
+
+            <p className={styles.authDivider}>
+              or continue with
+            </p>
 
             <a
               href={`${API_BASE_URL}/auth/google`}
@@ -108,6 +258,7 @@ export default function LoginPage() {
               >
                 G
               </span>
+
               Continue with Google
             </a>
 
@@ -116,24 +267,15 @@ export default function LoginPage() {
                 size={14}
                 aria-hidden="true"
               />
-              Secure sign-in with Google
+              Secure sign-in to Velora Hotels
             </p>
 
-            <p
-              style={{
-                marginTop: "24px",
-                textAlign: "center",
-                fontSize: "14px",
-              }}
-            >
+            <p className={styles.authSwitch}>
               Don't have an account?{" "}
+
               <Link
                 to="/register"
-                style={{
-                  color: "#b68b54",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                }}
+                className={styles.authSwitchLink}
               >
                 Create an account
               </Link>
