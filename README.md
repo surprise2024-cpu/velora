@@ -562,7 +562,8 @@ Velora includes security and reliability measures such as:
 This repository contains the frontend, backend, database schema, migrations, and supporting project documentation.
 
 ---
-
+<div align="center">
+     
 # VELORA HOTELS
 
 ### Discover Your Stay. Book with Confidence.
@@ -571,3 +572,4 @@ This repository contains the frontend, backend, database schema, migrations, and
 
 Built with React, TypeScript, Node.js, Express, PostgreSQL, and modern web technologies.
 
+</div>
