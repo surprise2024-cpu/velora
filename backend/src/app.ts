@@ -73,7 +73,14 @@ const authLimiter = rateLimit({
 });
 
 // Protect authentication separately.
-app.use("/api/v1/auth/google", authLimiter);
+app.use(
+  [
+    "/api/v1/auth/google",
+    "/api/v1/auth/register",
+    "/api/v1/auth/login",
+  ], 
+  authLimiter
+);
 
 // Protect the rest of the API.
 app.use("/api", (req, res, next) => {
