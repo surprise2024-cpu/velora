@@ -398,7 +398,7 @@ export default function RoomAvailability({
                 {nights === 1
                   ? "night"
                   : "nights"}{" "}
-                Â· {guests}{" "}
+                · {guests}{" "}
                 {guests === 1
                   ? "guest"
                   : "guests"}
