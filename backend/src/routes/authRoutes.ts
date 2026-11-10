@@ -1,14 +1,22 @@
 
 import { Router } from "express";
 import * as oidc from "openid-client";
+
 import {
   getGoogleConfig,
   googleCallbackUrl,
 } from "../config/googleAuth.js";
+
 import { prisma } from "../lib/prisma.js";
 import { Prisma } from "../generated/prisma/client.js";
 import { generateToken } from "../config/csrf.js";
 import { z } from "zod";
+
+import bcrypt from "bcrypt";
+import { randomUUID } from "node:crypto";
+
+import { registerSchema } from "../schemas/registerSchema.js"
+import { loginSchema } from "../schemas/loginSchema.js"
 
 const router = Router();
 
@@ -23,6 +31,202 @@ const updateProfileSchema = z
   })
   .strict();
 
+router.post("/register", async (req, res) => {
+  const parsed = registerSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid registration information",
+      errors: parsed.error.flatten(),
+    });
+  }
+
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+  } = parsed.data;
+
+  try {
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return res.status(409).json({
+        success: false,
+        message: "An account already exists with this email",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        name: `${firstName} ${lastName}`,
+        provider: "local",
+        providerId: randomUUID(),
+        passwordHash,
+        role: "CUSTOMER",
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+      },
+    });
+
+    req.session.regenerate((error) => {
+        if (error) {
+          console.error("Registration session regeneration failed:", error);
+
+          return res.status(500).json({
+            success: false,
+            message: "Account created, but automatic login failed. Please sign in.",
+          });
+        }
+
+        req.session.userId = user.id;
+
+        req.session.save((saveError) => {
+        if (saveError) {
+          console.error("Registration session save failed:", saveError);
+
+          return res.status(500).json({
+            success: false,
+            message: "Account created, but automatic login failed. Please sign in.",
+          });
+        }
+
+        return res.status(201).json({
+          success: true,
+          message: "Account created successfully",
+          user,
+        });
+      });
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "An account already exists with this email",
+      });
+    }
+
+    console.error("Registration failed:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to create account",
+    });
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const parsed = loginSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid login information",
+    });
+  }
+
+  const { email, password } = parsed.data;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        provider: true,
+        passwordHash: true,
+      },
+    });
+
+    if (
+      !user ||
+      user.provider !== "local" ||
+      !user.passwordHash
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    const passwordValid = await bcrypt.compare(
+      password,
+      user.passwordHash
+    );
+
+    if (!passwordValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    req.session.regenerate((error) => {
+      if (error) {
+        console.error(
+          "Login session regeneration failed:",
+          error
+        );
+
+        return res.status(500).json({
+          success: false,
+          message: "Unable to sign in. Please try again.",
+        });
+      }
+
+      req.session.userId = user.id;
+
+      req.session.save((saveError) => {
+        if (saveError) {
+          console.error(
+            "Login session save failed:",
+            saveError
+          );
+
+          return res.status(500).json({
+            success: false,
+            message: "Unable to sign in. Please try again.",
+          });
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: "Signed in successfully",
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          },
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Login failed:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to sign in. Please try again.",
+    });
+  }
+});
 
 router.get("/google", async (req, res) => {
   try {
@@ -71,7 +275,6 @@ router.get("/google", async (req, res) => {
     });
   }
 });
-
 
 router.get("/google/callback", async (req, res) => {
 
