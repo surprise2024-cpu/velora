@@ -304,6 +304,7 @@ The backend handles important operations such as validation, availability checki
 velora/
      backend/
           prisma/
+               migrations/
           scripts/
           src/
                config/
