@@ -127,14 +127,15 @@ enum BookingStatus {
 }
 
 model User {
-  id         String   @id @default(uuid()) @db.Uuid
-  email      String   @unique
-  name       String?
-  provider   String
-  providerId String
-  role       UserRole @default(CUSTOMER)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  name         String?
+  provider     String
+  providerId   String
+  passwordHash String?
+  role         UserRole @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   bookings   Booking[]
   favourites Favourite[]
