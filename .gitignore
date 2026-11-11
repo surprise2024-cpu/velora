@@ -25,3 +25,6 @@ Thumbs.db
 .claude/
 .windsurf/
 skills-lock.json
+
+# vs code problems
+.vscode/settings.json
