@@ -559,6 +559,7 @@ Velora includes security and reliability measures such as:
 ## 🔗 Repository
 
 **GitHub:** https://github.com/surprise2024-cpu/velora
+**Figma** https://www.figma.com/design/MO9AM5s3sgnVkkWjyBYe9I/Hotel-App?node-id=21-40&t=BX5BMedxdMOLL4aD-1
 
 This repository contains the frontend, backend, database schema, migrations, and supporting project documentation.
 
