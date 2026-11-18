@@ -14,8 +14,6 @@ reserve rooms, and manage your hotel stays through one connected experience.
 
 ![Velora Hotels](frontend/src/assets//velora-home-hero.png)
 
-**[About](#about-velora) • [Features](#features) • [Gallery](#application-gallery) • [Technology](#technology-stack) • [Installation](#getting-started) • [Roadmap](#development-roadmap)**
-
 </div>
 
 ---
@@ -560,10 +558,9 @@ Velora includes security and reliability measures such as:
 
 **GitHub:** https://github.com/surprise2024-cpu/velora
 
-**Figma** https://www.figma.com/design/MO9AM5s3sgnVkkWjyBYe9I/Hotel-App?node-id=21-40&t=BX5BMedxdMOLL4aD-1
+**Figma:** https://www.figma.com/design/MO9AM5s3sgnVkkWjyBYe9I/Hotel-App?node-id=21-40&t=BX5BMedxdMOLL4aD-1
 
-This repository contains the frontend, backend, database schema, migrations, and supporting project documentation.
-
+**Admin email:** sibisiso2402@gmail.com
 ---
 <div align="center">
      
