@@ -564,6 +564,7 @@ Velora includes security and reliability measures such as:
 
 This repository contains the frontend, backend, database schema, migrations, and supporting project documentation.
 
+**Admin credentials** sibisiso2402@gmail.com
 ---
 <div align="center">
      
